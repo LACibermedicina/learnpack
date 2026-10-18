@@ -1,0 +1,575 @@
+{
+ "slug": "direito-administrativo",
+ "name": "Direito Administrativo",
+ "emoji": "🎓",
+ "goal": "Aprovação na prova de Direito Administrativo",
+ "topics": [
+  {
+   "title": "Princípios da Administração Pública",
+   "law": "CF/88, art. 37, caput",
+   "emoji": "⚖️",
+   "summary": [
+    "O art. 37, caput, da Constituição lista cinco princípios expressos: legalidade, impessoalidade, moralidade, publicidade e eficiência.",
+    "Legalidade: o administrador só faz o que a lei autoriza; o particular pode fazer o que a lei não proíbe. Impessoalidade: agir pelo interesse público, sem favorecer nem perseguir ninguém.",
+    "Moralidade exige probidade e boa-fé. Publicidade dá transparência e condiciona a eficácia dos atos, salvo sigilo previsto em lei. Eficiência (EC 19/1998) busca bons resultados com uso adequado de recursos.",
+    "Princípios implícitos muito cobrados: supremacia do interesse público, indisponibilidade do interesse público, razoabilidade, proporcionalidade e continuidade do serviço público."
+   ],
+   "mnemonic": "LIMPE: Legalidade, Impessoalidade, Moralidade, Publicidade, Eficiência.",
+   "cards": [
+    [
+     "Quais são os princípios expressos no art. 37, caput, da CF?",
+     "Legalidade, impessoalidade, moralidade, publicidade e eficiência (LIMPE)."
+    ],
+    [
+     "Qual emenda constitucional inseriu o princípio da eficiência?",
+     "A Emenda Constitucional nº 19/1998."
+    ],
+    [
+     "Qual a diferença da legalidade para o administrador e para o particular?",
+     "O administrador só pode fazer o que a lei permite; o particular pode fazer tudo que a lei não proíbe."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "🧩",
+     "title": "LIMPE: os 5 princípios expressos",
+     "points": [
+      "⚖️ Legalidade: só faz o que a lei autoriza",
+      "🤝 Impessoalidade: sem favorecer nem perseguir",
+      "🧼 Moralidade: probidade e boa-fé",
+      "📢 Publicidade: transparência e eficácia do ato",
+      "🚀 Eficiência: bom resultado com bom uso dos recursos (EC 19/98)"
+     ],
+     "pitfall": "Supremacia do interesse público é princípio implícito: não está no caput.",
+     "example": "Contratar alguém só por ser amigo fere a impessoalidade e a moralidade."
+    }
+   ],
+   "refs": [
+    "Constituição Federal de 1988, arts. 37 a 41",
+    "Direito Administrativo (Maria Sylvia Zanella Di Pietro)"
+   ]
+  },
+  {
+   "title": "Organização administrativa",
+   "law": "CF/88, art. 37, XIX; Decreto-Lei 200/1967",
+   "emoji": "🏛️",
+   "summary": [
+    "Administração direta: União, Estados, DF e Municípios, com seus órgãos. Indireta: entidades com personalidade própria, criadas para descentralizar a atividade.",
+    "Autarquia: pessoa de direito público, criada por lei específica. Empresa pública e sociedade de economia mista: pessoas de direito privado, com criação autorizada por lei específica.",
+    "Desconcentração distribui competências dentro da mesma pessoa jurídica (órgãos). Descentralização transfere a atividade para outra pessoa jurídica."
+   ],
+   "mnemonic": "AUTarquia = criada por lei (AUTomático). Empresas e fundações: lei só AUTORIZA.",
+   "cards": [
+    [
+     "Como são criadas as autarquias?",
+     "Diretamente por lei específica."
+    ],
+    [
+     "Qual a diferença entre desconcentração e descentralização?",
+     "Desconcentração: distribuição interna entre órgãos da mesma pessoa. Descentralização: transferência para outra pessoa jurídica."
+    ],
+    [
+     "Empresas públicas e sociedades de economia mista são de que regime?",
+     "Pessoas jurídicas de direito privado, com criação autorizada por lei específica."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "🌳",
+     "title": "Administração direta e indireta",
+     "points": [
+      "🏛️ Direta: União, Estados, DF e Municípios",
+      "🏢 Autarquia: direito público, criada por lei",
+      "🏭 Empresa pública e sociedade de economia mista: direito privado, lei apenas autoriza",
+      "🔀 Desconcentração é entre órgãos; descentralização é para outra pessoa"
+     ],
+     "pitfall": "Só a autarquia é criada diretamente por lei; nas demais a lei autoriza a criação.",
+     "example": "O INSS é uma autarquia federal."
+    }
+   ],
+   "refs": [
+    "Direito Administrativo (Maria Sylvia Zanella Di Pietro)",
+    "Direito Administrativo Brasileiro (Hely Lopes Meirelles)",
+    "Manual de Direito Administrativo (José dos Santos Carvalho Filho)"
+   ]
+  },
+  {
+   "title": "Poderes administrativos",
+   "law": "Doutrina; Lei 9.784/1999",
+   "emoji": "👑",
+   "summary": [
+    "Poder hierárquico organiza e escalona funções, permitindo ordenar, fiscalizar, delegar e avocar. Poder disciplinar permite punir infrações funcionais de quem tem vínculo com a Administração.",
+    "Poder regulamentar: expedir normas para fiel execução da lei, sem inovar na ordem jurídica. Poder de polícia: limitar direitos individuais em favor do interesse coletivo.",
+    "Abuso de poder tem duas formas: excesso de poder (agir além da competência) e desvio de finalidade (agir com fim diverso do legal)."
+   ],
+   "mnemonic": "HI-DI-RE-PO: Hierárquico, Disciplinar, Regulamentar, Polícia.",
+   "cards": [
+    [
+     "O poder regulamentar pode criar obrigações novas por decreto?",
+     "Em regra não: serve à fiel execução da lei, sem inovar."
+    ],
+    [
+     "O que é desvio de finalidade?",
+     "Espécie de abuso de poder em que o agente pratica ato com fim diferente do previsto em lei."
+    ],
+    [
+     "Qual poder permite avocar e delegar competências?",
+     "O poder hierárquico."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "🦸",
+     "title": "Os poderes e o abuso de poder",
+     "points": [
+      "📶 Hierárquico: ordenar, fiscalizar, delegar e avocar",
+      "⚠️ Disciplinar: punir infração funcional",
+      "📘 Regulamentar: dar fiel execução à lei",
+      "🚓 Polícia: limitar direitos pelo interesse coletivo"
+     ],
+     "pitfall": "Abuso de poder = excesso de poder ou desvio de finalidade.",
+     "example": "Multar para arrecadar, e não para coibir a infração, é desvio de finalidade."
+    }
+   ],
+   "refs": [
+    "Direito Administrativo (Maria Sylvia Zanella Di Pietro)",
+    "Manual de Direito Administrativo (José dos Santos Carvalho Filho)"
+   ]
+  },
+  {
+   "title": "Atos administrativos",
+   "law": "Doutrina; Súmulas 346 e 473 do STF",
+   "emoji": "📜",
+   "summary": [
+    "Elementos (requisitos): competência, finalidade, forma, motivo e objeto. Competência, finalidade e forma são sempre vinculados.",
+    "Atributos: presunção de legitimidade, imperatividade, autoexecutoriedade e tipicidade. A presunção de legitimidade é relativa e admite prova em contrário.",
+    "Anulação: retirada de ato ilegal, feita pela Administração ou pelo Judiciário, com efeitos retroativos. Revogação: retirada de ato válido por conveniência e oportunidade, só pela Administração, sem retroação."
+   ],
+   "mnemonic": "COFIFOMOB: COmpetência, FInalidade, FOrma, MOtivo, OBjeto.",
+   "cards": [
+    [
+     "Quais os elementos do ato administrativo?",
+     "Competência, finalidade, forma, motivo e objeto."
+    ],
+    [
+     "Qual a diferença entre anulação e revogação?",
+     "Anulação: por ilegalidade, efeitos retroativos. Revogação: por conveniência e oportunidade, efeitos para frente."
+    ],
+    [
+     "Quem pode revogar um ato administrativo?",
+     "Apenas a própria Administração."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "🧱",
+     "title": "Elementos e atributos do ato",
+     "points": [
+      "🧱 Elementos: competência, finalidade, forma, motivo e objeto",
+      "🔒 Competência, finalidade e forma são sempre vinculados",
+      "🏷️ Atributos: presunção de legitimidade, imperatividade, autoexecutoriedade, tipicidade",
+      "✂️ Anular = por ilegalidade (retroage); revogar = por conveniência (não retroage)"
+     ],
+     "pitfall": "O Judiciário anula atos ilegais, mas não revoga atos da Administração.",
+     "example": "Licença dada sem os requisitos legais é anulável."
+    }
+   ],
+   "refs": [
+    "Direito Administrativo (Maria Sylvia Zanella Di Pietro)",
+    "Direito Administrativo Brasileiro (Hely Lopes Meirelles)",
+    "Manual de Direito Administrativo (José dos Santos Carvalho Filho)"
+   ]
+  },
+  {
+   "title": "Agentes públicos e servidores",
+   "law": "CF/88, arts. 37 a 41",
+   "emoji": "🧑‍💼",
+   "summary": [
+    "Cargos, empregos e funções são acessíveis a brasileiros e estrangeiros na forma da lei. Investidura em cargo ou emprego exige concurso público, salvo cargos em comissão de livre nomeação.",
+    "O concurso tem validade de até dois anos, prorrogável uma vez por igual período. Candidato aprovado dentro das vagas tem direito à nomeação.",
+    "Estabilidade: três anos de efetivo exercício em cargo efetivo, com avaliação especial de desempenho. A acumulação de cargos é exceção e exige compatibilidade de horários."
+   ],
+   "mnemonic": "Concurso: 2 + 2. Estabilidade: 3 anos + avaliação.",
+   "cards": [
+    [
+     "Qual a validade máxima inicial do concurso público?",
+     "Até dois anos, prorrogável uma vez por igual período."
+    ],
+    [
+     "Quantos anos de efetivo exercício geram estabilidade?",
+     "Três anos, com avaliação especial de desempenho."
+    ],
+    [
+     "Cargos em comissão exigem concurso?",
+     "Não, são de livre nomeação e exoneração."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "🎫",
+     "title": "Do concurso à estabilidade",
+     "points": [
+      "📝 Concurso: validade de até 2 anos, prorrogável uma vez",
+      "✅ Aprovado dentro das vagas tem direito à nomeação",
+      "⏳ Estabilidade: 3 anos de efetivo exercício e avaliação especial",
+      "🪑 Cargo em comissão: livre nomeação e exoneração"
+     ],
+     "pitfall": "Estabilidade vale para cargo efetivo, nunca para cargo em comissão.",
+     "example": "Um concurso de 2 anos, prorrogado por mais 2, dura 4 anos no total."
+    }
+   ],
+   "refs": [
+    "Constituição Federal de 1988, arts. 37 a 41",
+    "Manual de Direito Administrativo (José dos Santos Carvalho Filho)"
+   ]
+  },
+  {
+   "title": "Licitações – Lei 14.133/2021",
+   "law": "Lei 14.133/2021",
+   "emoji": "🛒",
+   "summary": [
+    "A nova lei trouxe cinco modalidades: pregão, concorrência, concurso, leilão e diálogo competitivo. Foram extintos a tomada de preços e o convite, e o RDC foi absorvido.",
+    "O pregão é obrigatório para bens e serviços comuns, definidos por padrões objetivos de desempenho. Não se aplica a obras e serviços de engenharia que não sejam comuns.",
+    "Contratação direta: licitação dispensável (art. 75, hipóteses legais) e inexigível (art. 74, quando a competição é inviável, como fornecedor exclusivo)."
+   ],
+   "mnemonic": "Cinco modalidades: P-C-C-L-D (Pregão, Concorrência, Concurso, Leilão, Diálogo).",
+   "cards": [
+    [
+     "Quais as modalidades de licitação da Lei 14.133/2021?",
+     "Pregão, concorrência, concurso, leilão e diálogo competitivo."
+    ],
+    [
+     "Quando a licitação é inexigível?",
+     "Quando a competição é inviável, como no caso de fornecedor exclusivo (art. 74)."
+    ],
+    [
+     "Tomada de preços e convite continuam existindo?",
+     "Não. Foram extintos pela Lei 14.133/2021."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "🛒",
+     "title": "As 5 modalidades da Lei 14.133/2021",
+     "points": [
+      "🔨 Pregão: bens e serviços comuns",
+      "🏗️ Concorrência: demais objetos, como obras e serviços especiais",
+      "🎨 Concurso: trabalho técnico, científico ou artístico",
+      "📣 Leilão: venda de bens da Administração",
+      "💬 Diálogo competitivo: soluções inovadoras"
+     ],
+     "pitfall": "Tomada de preços e convite deixaram de existir.",
+     "example": "Comprar papel e canetas é caso típico de pregão."
+    },
+    {
+     "emoji": "🚪",
+     "title": "Contratação direta",
+     "points": [
+      "🟢 Dispensa (art. 75): é possível licitar, mas a lei permite não licitar",
+      "🔴 Inexigibilidade (art. 74): a competição é inviável",
+      "🥇 Fornecedor exclusivo é exemplo de inexigibilidade"
+     ],
+     "pitfall": "Dispensável: competição possível. Inexigível: competição impossível.",
+     "example": "Contratar diretamente um artista consagrado pode ser caso de inexigibilidade."
+    }
+   ],
+   "refs": [
+    "Lei 14.133/2021 (licitações e contratos)"
+   ]
+  },
+  {
+   "title": "Contratos administrativos",
+   "law": "Lei 14.133/2021, art. 104",
+   "emoji": "🤝",
+   "summary": [
+    "O contrato administrativo tem cláusulas exorbitantes, que dão prerrogativas à Administração em razão do interesse público.",
+    "Prerrogativas: modificar unilateralmente para melhor adequação ao interesse público, extinguir unilateralmente nos casos legais, fiscalizar a execução, aplicar sanções e ocupar provisoriamente bens e serviços.",
+    "O contratado mantém o direito ao equilíbrio econômico-financeiro: se a Administração altera o contrato, a remuneração deve ser reajustada."
+   ],
+   "mnemonic": "MEFOS: Modificar, Extinguir, Fiscalizar, Ocupar, Sancionar.",
+   "cards": [
+    [
+     "O que são cláusulas exorbitantes?",
+     "Prerrogativas da Administração no contrato, fundadas no interesse público."
+    ],
+    [
+     "Cite duas prerrogativas da Administração no contrato.",
+     "Modificação unilateral, extinção unilateral, fiscalização, sanções e ocupação provisória."
+    ],
+    [
+     "O que protege o contratado diante de alteração unilateral?",
+     "O equilíbrio econômico-financeiro do contrato."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "🤝",
+     "title": "Cláusulas exorbitantes: MEFOS",
+     "points": [
+      "✏️ Modificar o contrato unilateralmente",
+      "🛑 Extinguir unilateralmente, nos casos legais",
+      "🔍 Fiscalizar a execução",
+      "🧾 Sancionar o contratado",
+      "🏚️ Ocupar provisoriamente bens e serviços"
+     ],
+     "pitfall": "O contratado mantém o direito ao equilíbrio econômico-financeiro.",
+     "example": "Se a Administração amplia o objeto, a remuneração deve acompanhar."
+    }
+   ],
+   "refs": [
+    "Lei 14.133/2021 (licitações e contratos)",
+    "Direito Administrativo (Maria Sylvia Zanella Di Pietro)"
+   ]
+  },
+  {
+   "title": "Serviços públicos – Lei 8.987/1995",
+   "law": "Lei 8.987/1995",
+   "emoji": "🚌",
+   "summary": [
+    "Concessão: delegação por licitação (concorrência ou leilão), a pessoa jurídica ou consórcio, por prazo determinado, por conta e risco do concessionário.",
+    "Permissão: delegação a título precário, formalizada por contrato de adesão, a pessoa física ou jurídica, também precedida de licitação.",
+    "Serviço adequado: regularidade, continuidade, eficiência, segurança, atualidade, generalidade, cortesia e modicidade das tarifas."
+   ],
+   "mnemonic": "Concessão = prazo e estabilidade. Permissão = precária e adesão.",
+   "cards": [
+    [
+     "Qual a natureza da permissão de serviço público?",
+     "Delegação precária, por contrato de adesão."
+    ],
+    [
+     "A concessão de serviço público é feita por tempo determinado?",
+     "Sim, por prazo determinado, mediante licitação."
+    ],
+    [
+     "Cite três características do serviço adequado.",
+     "Por exemplo: continuidade, eficiência, modicidade das tarifas, segurança e cortesia."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "🚌",
+     "title": "Concessão x Permissão",
+     "points": [
+      "📃 Concessão: licitação (concorrência ou leilão) e prazo determinado",
+      "🏢 Concessão: pessoa jurídica ou consórcio",
+      "📝 Permissão: precária, por contrato de adesão",
+      "👤 Permissão: pessoa física ou jurídica"
+     ],
+     "pitfall": "Nos dois casos há licitação prévia.",
+     "example": "Linhas de ônibus urbanas costumam ser delegadas por concessão ou permissão."
+    }
+   ],
+   "refs": [
+    "Lei 8.987/1995 (concessões e permissões)",
+    "Manual de Direito Administrativo (José dos Santos Carvalho Filho)"
+   ]
+  },
+  {
+   "title": "Processo administrativo – Lei 9.784/1999",
+   "law": "Lei 9.784/1999",
+   "emoji": "📝",
+   "summary": [
+    "Aplica-se à Administração Pública federal. Princípios expressos incluem legalidade, finalidade, motivação, razoabilidade, proporcionalidade, moralidade, ampla defesa, contraditório, segurança jurídica, interesse público e eficiência.",
+    "Prazo para decidir: até 30 dias após o fim da instrução, prorrogável por igual período com justificativa. Recurso administrativo: prazo de 10 dias.",
+    "A Administração pode anular seus atos ilegais, mas o direito de anular atos favoráveis aos destinatários decai em 5 anos, salvo má-fé."
+   ],
+   "mnemonic": "30 para decidir, 10 para recorrer, 5 para anular.",
+   "cards": [
+    [
+     "Qual o prazo para recurso administrativo na Lei 9.784/99?",
+     "Dez dias."
+    ],
+    [
+     "Em quanto tempo decai o direito de anular atos favoráveis ao administrado?",
+     "Cinco anos, salvo comprovada má-fé."
+    ],
+    [
+     "Qual o prazo para a Administração decidir após a instrução?",
+     "Até 30 dias, prorrogável por igual período com motivação."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "⏱️",
+     "title": "Os prazos da Lei 9.784/99: 30-10-5",
+     "points": [
+      "🗓️ Decidir: até 30 dias após a instrução, prorrogável por igual período",
+      "📬 Recurso administrativo: 10 dias",
+      "🧮 Anular atos favoráveis: decai em 5 anos, salvo má-fé"
+     ],
+     "pitfall": "A lei vale diretamente para a Administração federal.",
+     "example": "Quem foi prejudicado por uma decisão tem 10 dias para recorrer."
+    }
+   ],
+   "refs": [
+    "Lei 9.784/1999 (processo administrativo federal)"
+   ]
+  },
+  {
+   "title": "Responsabilidade civil do Estado",
+   "law": "CF/88, art. 37, §6º",
+   "emoji": "💥",
+   "summary": [
+    "Pessoas jurídicas de direito público e as de direito privado prestadoras de serviço público respondem pelos danos que seus agentes causarem a terceiros, independentemente de culpa (responsabilidade objetiva).",
+    "Basta provar conduta, dano e nexo causal. A Administração pode se eximir em caso de culpa exclusiva da vítima, caso fortuito ou força maior.",
+    "O agente responde perante o Estado em ação regressiva, mas só se houver dolo ou culpa."
+   ],
+   "mnemonic": "Estado: objetiva. Agente: subjetiva, em regresso.",
+   "cards": [
+    [
+     "A responsabilidade do Estado por ato de agente é objetiva ou subjetiva?",
+     "Objetiva, pela teoria do risco administrativo."
+    ],
+    [
+     "Quando cabe ação regressiva contra o agente?",
+     "Quando ele agiu com dolo ou culpa."
+    ],
+    [
+     "Cite uma excludente de responsabilidade do Estado.",
+     "Culpa exclusiva da vítima, caso fortuito ou força maior."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "💥",
+     "title": "Responsabilidade do Estado: art. 37, §6º",
+     "points": [
+      "🏛️ Estado: responsabilidade objetiva, sem necessidade de culpa",
+      "🧾 Prove conduta, dano e nexo causal",
+      "🔁 Regresso contra o agente: só com dolo ou culpa",
+      "🛡️ Excludentes: culpa exclusiva da vítima, caso fortuito, força maior"
+     ],
+     "pitfall": "Objetiva para o Estado; subjetiva para o agente, na ação de regresso.",
+     "example": "Viatura da prefeitura bate em um carro: a vítima cobra do Município."
+    }
+   ],
+   "refs": [
+    "Constituição Federal de 1988, arts. 37 a 41",
+    "Direito Administrativo (Maria Sylvia Zanella Di Pietro)"
+   ]
+  },
+  {
+   "title": "Improbidade – Lei 8.429/1992",
+   "law": "Lei 8.429/1992 (com a Lei 14.230/2021)",
+   "emoji": "🕵️",
+   "summary": [
+    "Há três grupos de atos: enriquecimento ilícito (art. 9º), prejuízo ao erário (art. 10) e violação de princípios (art. 11).",
+    "Após a Lei 14.230/2021, exige-se dolo para a configuração da improbidade; a modalidade culposa foi eliminada.",
+    "Sanções incluem ressarcimento, perda de bens, perda da função pública, suspensão de direitos políticos, multa e proibição de contratar com o poder público. A prescrição geral é de 8 anos."
+   ],
+   "mnemonic": "9 = enriquece, 10 = prejudica o erário, 11 = fere princípios.",
+   "cards": [
+    [
+     "Qual artigo trata do enriquecimento ilícito na Lei 8.429/92?",
+     "O art. 9º."
+    ],
+    [
+     "O que mudou quanto à culpa após a Lei 14.230/2021?",
+     "Passou-se a exigir dolo; a improbidade culposa foi eliminada."
+    ],
+    [
+     "Qual o prazo geral de prescrição da improbidade?",
+     "Oito anos."
+    ]
+   ],
+   "visuals": [
+    {
+     "emoji": "🕵️",
+     "title": "Os três grupos de improbidade",
+     "points": [
+      "💰 Art. 9º: enriquecimento ilícito",
+      "📉 Art. 10: prejuízo ao erário",
+      "📜 Art. 11: violação de princípios",
+      "🎯 Desde a Lei 14.230/21 é preciso dolo"
+     ],
+     "pitfall": "Não existe mais improbidade culposa.",
+     "example": "Receber vantagem indevida para liberar um pagamento é enriquecimento ilícito."
+    }
+   ],
+   "refs": [
+    "Lei 8.429/1992, com a Lei 14.230/2021 (improbidade)",
+    "Manual de Direito Administrativo (José dos Santos Carvalho Filho)"
+   ]
+  }
+ ],
+ "tags": [
+  "direito administrativo",
+  "concursos",
+  "OAB"
+ ],
+ "objective": "Aprovação na prova de Direito Administrativo, com domínio da legislação essencial e da doutrina de referência.",
+ "biblio": [
+  {
+   "tipo": "livro",
+   "titulo": "Direito Administrativo (Maria Sylvia Zanella Di Pietro)",
+   "autores": "Maria Sylvia Zanella Di Pietro",
+   "ano": "",
+   "url": "",
+   "por_que": "Principal doutrina de referência adotada pelo corpo docente para conceitos gerais, atos e procedimentos administrativos.",
+   "verificada": true
+  },
+  {
+   "tipo": "livro",
+   "titulo": "Direito Administrativo Brasileiro (Hely Lopes Meirelles)",
+   "autores": "Hely Lopes Meirelles",
+   "ano": "",
+   "url": "",
+   "por_que": "Doutrina clássica de fundamentação da disciplina.",
+   "verificada": true
+  },
+  {
+   "tipo": "livro",
+   "titulo": "Manual de Direito Administrativo (José dos Santos Carvalho Filho)",
+   "autores": "José dos Santos Carvalho Filho",
+   "ano": "",
+   "url": "",
+   "por_que": "Ampla utilização em aulas práticas, jurisprudência e preparação para OAB e concursos.",
+   "verificada": true
+  },
+  {
+   "tipo": "norma",
+   "titulo": "Constituição Federal de 1988, arts. 37 a 41",
+   "autores": "Brasil",
+   "ano": 1988,
+   "url": "",
+   "por_que": "Administração Pública, servidores e princípios.",
+   "verificada": true
+  },
+  {
+   "tipo": "norma",
+   "titulo": "Lei 14.133/2021 (licitações e contratos)",
+   "autores": "Brasil",
+   "ano": 2021,
+   "url": "",
+   "por_que": "Nova Lei de Licitações e Contratos Administrativos.",
+   "verificada": true
+  },
+  {
+   "tipo": "norma",
+   "titulo": "Lei 9.784/1999 (processo administrativo federal)",
+   "autores": "Brasil",
+   "ano": 1999,
+   "url": "",
+   "por_que": "Processo administrativo no âmbito da Administração Pública Federal.",
+   "verificada": true
+  },
+  {
+   "tipo": "norma",
+   "titulo": "Lei 8.429/1992, com a Lei 14.230/2021 (improbidade)",
+   "autores": "Brasil",
+   "ano": 1992,
+   "url": "",
+   "por_que": "Improbidade administrativa, com as alterações da Lei 14.230/2021.",
+   "verificada": true
+  },
+  {
+   "tipo": "norma",
+   "titulo": "Lei 8.987/1995 (concessões e permissões)",
+   "autores": "Brasil",
+   "ano": 1995,
+   "url": "",
+   "por_que": "Regime de concessão e permissão da prestação de serviços públicos.",
+   "verificada": true
+  }
+ ]
+}

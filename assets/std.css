@@ -1,0 +1,73 @@
+/* ===== Desenho padrão (acessibilidade desligada): compacto, neutro, letras menores e outra disposição =====
+   Entra quando a pessoa oculta a acessibilidade. Vale para as duas versões e ignora os temas de contraste. */
+html.std{--fs:15px!important;--lh:1.5!important;--ls:0em!important}
+html.std[data-theme] body{--bg:#f4f6f8;--fg:#1f2937;--mut:#5b6673;--ac:#0f766e;--acf:#fff;--card:#fff;--ok:#2e7d32;--bad:#b42318;--t1:#f1f5f9;--t2:#ecf5f2;--t3:#f8f1ee;--t4:#eef3fa;--t5:#f1f2f8;--t6:#f7f3e9;--sh:0 1px 2px rgba(16,24,40,.07);--bd:#d8dee5}
+html.std body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg)!important;letter-spacing:0;padding-bottom:0}
+html.std body::before,html.std body::after{display:none!important}
+html.std a{color:#0f766e;font-weight:600}
+html.std h1{font-size:1.3rem;font-weight:700;margin:.2em 0 .4em}html.std h2{font-size:1.02rem;font-weight:700;margin:.9em 0 .35em}html.std p{margin:.35em 0}
+/* cabeçalho enxuto */
+html.std header{position:static!important;background:#fff!important;border-bottom:1px solid var(--bd)!important;box-shadow:none!important;animation:none!important}
+html.std header .in{max-width:72rem;display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .9rem;padding:.45rem 1rem}
+html.std .logo{width:1.9rem}
+html.std .brand{font-size:1rem;font-weight:700;background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;color:#134e4a!important;-webkit-text-fill-color:#134e4a}
+html.std #search{display:flex;flex:1 1 14rem;max-width:26rem;gap:.3rem}
+html.std #hud{background:var(--t1)!important;border:1px solid var(--bd)!important;border-radius:6px;font-size:.78rem;font-weight:600;padding:.15rem .5rem;margin:0;animation:none!important;color:var(--fg)!important}
+html.std #a11ytoggle{min-height:1.9rem;font-size:.78rem;padding:0 .6rem;margin-left:auto}
+/* disposição: menu lateral de texto (telas largas) ou abas no topo (celular) */
+html.std .shell{display:grid;grid-template-columns:11.5rem minmax(0,1fr);gap:1rem;max-width:72rem;margin:0 auto;padding:1rem}
+html.std body main{max-width:none;margin:0;padding:0;width:100%;min-width:0;justify-self:stretch}
+html.std body #nav{position:sticky;top:.8rem;bottom:auto;left:auto;right:auto;align-self:start;display:flex;flex-direction:column;flex-wrap:nowrap;gap:.1rem;max-width:none;margin:0;padding:.4rem;background:#fff;border:1px solid var(--bd);border-top:1px solid var(--bd);border-radius:8px;box-shadow:none;overflow:visible}
+html.std body #nav :is(.btn,button){justify-content:flex-start;flex-direction:row;min-height:2rem;min-width:0;padding:.2rem .6rem;border:0!important;border-radius:6px!important;background:transparent!important;color:var(--fg)!important;box-shadow:none!important;font-weight:500;font-size:.88rem;text-align:left;gap:.5rem;transform:none}
+html.std body #nav .ni{width:auto;height:auto;background:none!important;font-size:1rem;margin:0;display:inline}
+html.std body #nav .nl{font-size:.88rem;font-weight:500;white-space:normal;overflow:visible;max-width:none}
+html.std body #nav :is(.btn,button):hover{background:#eef2f5!important}
+html.std body #nav a.cur{background:#e3f1ee!important;color:#0f5f58!important;font-weight:700;box-shadow:inset 3px 0 0 var(--ac)!important}
+@media(max-width:52rem){
+ html.std .shell{grid-template-columns:1fr;gap:.6rem;padding:.6rem}
+ html.std body #nav{position:static;flex-direction:row;overflow-x:auto;padding:.25rem;gap:.15rem}
+ html.std body #nav :is(.btn,button){flex:none;padding:.3rem .65rem;white-space:nowrap}
+ html.std body #nav .nl{white-space:nowrap}
+ html.std header .in{padding:.4rem .7rem}
+}
+/* cartões, botões e campos */
+html.std body .box{background:#fff;border:1px solid var(--bd)!important;border-radius:8px!important;box-shadow:var(--sh)!important;padding:.6rem 1rem .85rem;margin:.8rem 0}
+html.std body .grid{gap:.8rem;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))}
+html.std body .grid>.box{background:#fff!important;margin:0;transform:none!important}
+html.std body :is(button,.btn){min-height:2.1rem;min-width:2.1rem;padding:.25rem .8rem;border:1px solid var(--ac)!important;border-radius:6px!important;background:var(--ac)!important;color:#fff!important;box-shadow:none!important;font-weight:600;font-size:.88rem;transform:none}
+html.std body :is(button,.btn).alt{background:#fff!important;color:var(--fg)!important;border:1px solid #c5ced8!important}
+html.std body :is(button,.btn).big{font-size:.95rem;padding:.4rem 1rem}
+html.std body button.g0{background:#fdecec!important;color:#7a1f1f!important;border-color:#f3c0c0!important}html.std body button.g1{background:#fff4d6!important;color:#6b4a00!important;border-color:#f0dca0!important}
+html.std body button.g2{background:#e6f4ea!important;color:#1b5e20!important;border-color:#b9dcc2!important}html.std body button.g3{background:#e6f0fb!important;color:#1a4b8c!important;border-color:#b9d0ee!important}
+html.std body .ouvir{padding:.1rem .45rem;min-width:2rem}
+html.std :focus-visible{outline:2px solid #0f766e;outline-offset:2px;box-shadow:none}
+html.std body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){min-height:2.1rem;padding:.3rem .55rem;border:1px solid #c5ced8!important;border-radius:6px!important;font-size:.9rem;background:#fff;color:var(--fg)}
+html.std label{font-weight:600;margin:.6rem 0 .2rem;font-size:.88rem}
+html.std body .hero{background:linear-gradient(135deg,#0f766e,#115e59)!important;color:#fff;animation:none!important}
+html.std body .hero :is(h1,h2,p,b,small,a:not(.btn)){color:#fff!important}
+html.std body .hero :is(button,.btn){background:#fff!important;color:#0f5f58!important;border-color:#fff!important}
+html.std body .hero .bar{background:rgba(255,255,255,.3)!important}html.std body .hero .bar i{background:#ffd166!important}
+html.std body .party{background:#ecf5f2!important}
+html.std body .msg{background:#fff7e0;border:1px solid #f0dca0!important;box-shadow:none!important;font-weight:500;border-radius:6px!important}
+html.std body .bar{height:.5rem;border:0!important;background:#e3e8ee!important;border-radius:4px;margin:.3rem 0}html.std body .bar i{background:var(--ac)!important;animation:none!important}
+html.std body .gauge{width:5rem;height:5rem;border:0!important;box-shadow:none!important;background:conic-gradient(var(--ac) calc(var(--p)*1%),#e3e8ee 0)}
+html.std body .gauge span{width:3.6rem;height:3.6rem;border:0!important;box-shadow:none!important;font-size:1rem;background:#fff}
+html.std body .chips li{border:1px solid var(--bd)!important;box-shadow:none!important;font-weight:500;border-radius:6px}
+html.std body :is(.tip,.toast,.xppop){border:1px solid var(--bd)!important;box-shadow:0 4px 12px rgba(0,0,0,.12)!important;background:#fff!important;color:var(--fg)!important}
+html.std body .steps li{border:1px solid var(--bd)!important;border-radius:6px}
+html.std body .row{border-bottom:1px solid var(--bd)}
+html.std .bigico{font-size:1.8rem}html.std .logo-big{width:4rem}html.std .avatar{background:var(--ac)!important}
+html.std body .qz{font-size:1.15rem;font-weight:600}
+html.std body .box.cardq{min-height:0;background:#fff}
+html.std .ico,html.std .bob,html.std body #view>*{animation:none!important}
+/* mapa da trilha no desenho padrão: sóbrio e menor */
+html.std .trailwrap{max-width:26rem}
+html.std body .trail{border:1px solid var(--bd)!important;box-shadow:none!important;border-radius:8px;background:#fff}
+html.std .sky{fill:#eef3f6!important}html.std .road-b{stroke:#fff}html.std .road{stroke:#9aa8b5}html.std .road-done{stroke:var(--ac);stroke-width:5}
+html.std .nc{stroke:#1f2937;stroke-width:3}html.std .node.open .nc,html.std .node.cur .nc{fill:#fff}html.std .node.done .nc{fill:#ffd166}html.std .node.lock .nc{fill:#e3e8ee}
+html.std .lb{font-size:15px;stroke:#fff}
+
+html.std body.nonav .shell{grid-template-columns:1fr}
+html.std body .study{gap:.8rem}html.std canvas.g3d{border:1px solid var(--bd);border-radius:8px}
+
+html.std body.immersive .shell{grid-template-columns:1fr}

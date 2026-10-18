@@ -1,0 +1,48 @@
+ESTUDO CLARO — instalação
+1. Copie TODO o conteúdo desta pasta para o servidor (PHP 8.1+ com pdo_sqlite).
+2. Abra o endereço no navegador. O autoinstalador abre sozinho: verifica o servidor,
+   cria o banco SQLite (fora da pasta pública, se possível), o administrador e o conteúdo inicial.
+3. Ao terminar ele grava config.php e se bloqueia. Para reinstalar, apague config.php e a pasta de dados.
+Opcional: antes de copiar, crie um arquivo install.key (qualquer texto) ao lado do index.php;
+o instalador passa a exigir essa chave, e assim ninguém "instala primeiro" no seu lugar.
+Nginx: bloqueie o acesso web a inc/, config.php e à pasta de dados (o .htaccess só vale no Apache).
+Use HTTPS (necessário para instalar como app e para o modo offline).
+
+PACOTES DE ESTUDO
+O pacote Direito Administrativo (objetivo: aprovação na prova) acompanha o sistema em pacotes/direito-administrativo.json.
+Novos pacotes: Administração > Pacotes, cole ou envie um .json no mesmo formato (objetivo, assuntos, cartões e resumos visuais).
+
+TRILHAS COM IA, IMPORTAR/EXPORTAR E METAS
+- Administração > IA: informe a chave da API da Anthropic, o modelo e o limite diário por usuário. Requer a extensão cURL do PHP.
+- Usuários criam trilhas por tema/objetivo, com materiais próprios (texto, .md, .pdf) ou a partir de vídeos (o servidor tenta obter a transcrição/legendas do YouTube; se não houver, cole a transcrição).
+- A geração roda em segundo plano e pesquisa fontes atuais na web. Confira sempre as referências (as não confirmadas vêm marcadas).
+- Exportar gera um arquivo .trilha.json (conteúdo, bibliografia, estratégia, progresso, prazo e metas) que pode ser importado de volta.
+- Desativar congela tempo e metas e deixa a trilha só para visualização. Excluir esconde a trilha do usuário; a exclusão definitiva e a restauração ficam em Administração > Exclusões.
+
+DUAS VERSÕES, COMUNIDADE E CONTINGÊNCIA DE IA
+- ESCOLHA ANTES DE COMEÇAR: index.php mostra a tela "Como você quer usar?" com duas opções: PORTAL (comunidade, computador e tablet) ou MOBILE ACESSÍVEL (celular, baixa visão). A escolha fica guardada; trocar: Mais > Trocar de versão (ou index.php?trocar=1). Entradas diretas: portal.php e acessivel.php.
+- O administrador define no instalador (ou em Administração > Versões) se oferece as duas ou só uma; com uma só, a tela de escolha é pulada.
+- Mesmo banco e mesma conta nas duas versões.
+- Trilhas: privadas, públicas ou compartilhadas com grupos de usuários (grupos entram por código de convite). Trilhas públicas podem ser estudadas ou copiadas; o progresso de cada pessoa é só dela. Biblioteca de materiais própria para alimentar a IA.
+- IA em contingência (Administração > IA): vários provedores em ordem de prioridade (Claude, compatíveis com OpenAI/OpenRouter/Groq/Ollama, Gemini). Falhou? Tenta o próximo; quem falha 2 vezes fica 10 min em pausa. Respostas de modelos diferentes são normalizadas para o formato do sistema.
+- Se nenhum provedor responder (ou nenhum estiver configurado), o usuário recebe o modo agente: copia o pedido para qualquer IA, cola a resposta e o sistema monta a trilha; ou cria um esqueleto sem IA. O mesmo vale para "Gerar mais cartões" em um assunto.
+- Modelos sem busca na web criam a trilha com as referências marcadas como "a confirmar".
+
+INSTALAÇÃO EM ASSISTENTE (5 passos)
+1 Servidor (verificação), 2 Administrador, 3 Versões oferecidas, 4 Agentes de IA com contingência, 5 Concluir.
+No passo 4 você adiciona vários agentes (Claude, OpenAI, Gemini, OpenRouter, modelo local...), define a prioridade, o papel de cada um (planejador ou redator) e testa cada um antes de instalar. A ordem de socorro é: agentes em sequência > modo agente (copiar o pedido para qualquer IA) > esqueleto sem IA.
+A criação de trilhas é orquestrada em etapas: preparar > planejar (agente planejador) > escrever assunto por assunto (agente redator) > montar. Um assunto que falhar vira rascunho em vez de derrubar a trilha.
+
+CREDENCIAIS PRÉ-CONFIGURADAS
+inc/preconfig.php traz os agentes de IA já configurados. O instalador usa essas chaves (sem mostrá-las na tela), grava no banco fora da pasta pública e APAGA o arquivo ao concluir.
+ATENÇÃO: esse arquivo contém chaves secretas. Não envie o .zip a terceiros nem publique o projeto num repositório. Como as chaves foram coladas numa conversa, troque (rotacione) todas nos painéis dos provedores assim que possível.
+TROCA DE SENHA: qualquer usuário (não só o administrador) troca a própria senha em Ajustes > Minha conta.
+
+AULAS EM ÁUDIO E VÍDEO
+Menu Aulas: o usuário envia áudio ou vídeo (envio em partes de 4 MB; limite configurável, padrão 500 MB). O servidor converte a fala em texto com os agentes marcados como "Transcreve áudio" (Gemini lê áudio e vídeo direto, inclusive arquivos grandes; OpenAI usa Whisper e, acima de 25 MB, precisa do ffmpeg). Depois estrutura a aula (capítulos, conceitos, fontes citadas), encontra e detalha a bibliografia (com busca na web quando o agente tem), cria um material de aprofundamento e guarda tudo na biblioteca; dali, "Criar trilha com esta aula". O arquivo original é apagado após o processamento (fica só o texto).
+Se nenhum agente conseguir transcrever, o usuário cola a transcrição (de legendas ou de qualquer ferramenta) e o resto do processo continua igual.
+
+MAPA DE CONHECIMENTO, APROFUNDAMENTO E JOGO BÔNUS
+- Mapa (menu Mapa): grafo 3D que liga trilha, tópicos, cartões, bibliografia, aprofundamentos salvos e outras trilhas vinculadas (etiquetas, obras e origem em comum), em 4 níveis de complexidade; alterna para um fluxograma simples só com a trilha e os cartões dos tópicos a revisar.
+- Aprofundar: na revisão (pergunta e resposta) e no mapa, o estudante gera um card ou um tema de aprofundamento sobre o tópico, fundamentado na bibliografia principal e alinhado ao objetivo da trilha; fica salvo no mapa, na biblioteca de aprofundamento da trilha e (os temas) na biblioteca de materiais.
+- Jogo bônus: após N acertos seguidos (padrão 3) abre um jogo retrô de 1 minuto (minhoquinha, carrinho ou tetris sorteado). Administração > Jogo e mapa: liga/desliga, acertos seguidos, duração, jogos permitidos, sorteio, velocidade, paleta, XP máximo, partidas por dia e padrões do mapa.

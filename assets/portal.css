@@ -1,0 +1,84 @@
+/* ===== Versão portal: comunidade de estudo, cores vivas, claras e alegres (os temas de contraste continuam valendo) ===== */
+[data-theme=claro] body.portal{--bg:#f7f5ff;--fg:#1e1b4b;--mut:#4b4a7a;--ac:#6d28d9;--acf:#fff;--card:#fff;--t1:#fff0b3;--t2:#c8f7e4;--t3:#ffd5e5;--t4:#d2ecff;--t5:#e6dcff;--t6:#ffe1c2;--sh:0 10px 28px -10px rgba(109,40,217,.38)}
+[data-theme=claro] body.portal{background:radial-gradient(40rem 28rem at 0 0,#ffe3f1 0,transparent 60%),radial-gradient(38rem 26rem at 100% 8%,#d9f3ff 0,transparent 60%),radial-gradient(40rem 30rem at 50% 100%,#e5ffe9 0,transparent 60%),#f7f5ff;background-attachment:fixed}
+body.portal header{position:sticky;top:0;z-index:7;border-bottom:0;box-shadow:0 2px 18px rgba(109,40,217,.14)}
+[data-theme=claro] body.portal header{background:rgba(255,255,255,.9);backdrop-filter:blur(10px)}
+body.portal header .in{max-width:80rem;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem}
+body.portal .tools{margin:0}
+[data-theme=claro] body.portal .brand{background:linear-gradient(90deg,#6d28d9,#db2777);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:1.4rem}
+body.portal #search{display:flex;flex:1 1 16rem;max-width:34rem;gap:.4rem}
+body.portal #search input{border-radius:999px;border:2px solid #ddd6fe;min-height:2.8rem}
+body.portal #search button{min-width:3rem;padding:.2rem .8rem}
+body.portal .shell{display:grid;grid-template-columns:15.5rem minmax(0,1fr);gap:1.4rem;max-width:80rem;margin:0 auto;padding:1rem}
+body.portal main{max-width:none;padding:0}
+body.portal #nav{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:.25rem;position:sticky;top:5.4rem;align-self:start;margin:0;padding:.7rem;max-width:none;background:var(--card);border-radius:24px;box-shadow:var(--sh)}
+body.portal #nav :is(.btn,button){justify-content:flex-start;background:transparent;border:0;box-shadow:none;color:var(--fg);border-radius:14px;min-height:2.7rem;font-weight:700}
+body.portal #nav :is(.btn,button):hover{background:var(--t5)}
+[data-theme=claro] body.portal #nav a.cur{background:linear-gradient(135deg,#6d28d9,#db2777);color:#fff;box-shadow:none}
+body.portal .box{border:0;border-radius:24px;box-shadow:var(--sh)}
+body.portal .grid>.box{transition:transform .2s}
+body.portal .grid>.box:hover{transform:translateY(-4px)}
+[data-theme=claro] body.portal main :is(button,.btn):not(.alt):not(.g0):not(.g1):not(.g2):not(.g3){background:linear-gradient(135deg,#6d28d9,#db2777);color:#fff;border:0;box-shadow:0 8px 18px -8px rgba(219,39,119,.65)}
+[data-theme=claro] body.portal main :is(button,.btn).alt{background:#fff;color:#4c1d95;border:2px solid #ddd6fe;box-shadow:none}
+[data-theme=claro] body.portal main :is(button,.btn).on{background:#6d28d9;color:#fff;border:0}
+[data-theme=claro] body.portal main :is(button.g0,button.g1,button.g2,button.g3){border:0;box-shadow:none}
+body.portal :is(button,.btn){border-radius:999px}
+body.portal :is(button,.btn):hover{transform:translateY(-2px)}
+[data-theme=claro] body.portal .hero{background:linear-gradient(120deg,#6d28d9,#db2777);color:#fff}
+[data-theme=claro] body.portal .hero :is(h1,h2,p,b,small,a:not(.btn)){color:#fff}
+[data-theme=claro] body.portal .hero :is(button,.btn){background:#fff!important;color:#4c1d95!important;border:0!important}
+[data-theme=claro] body.portal .hero .bar{background:rgba(255,255,255,.35);border-color:#fff}
+[data-theme=claro] body.portal .hero .bar i{background:#ffd23f}
+[data-theme=claro] body.portal .party{background:linear-gradient(135deg,#c8f7e4,#d2ecff)}
+[data-theme=claro] body.portal #hud{background:linear-gradient(135deg,#fde68a,#fbcfe8);border:0;color:#4c1d95}
+[data-theme=claro] body.portal .bar{border:0;background:#ede9fe;height:1rem}
+[data-theme=claro] body.portal .bar i{background:linear-gradient(90deg,#6d28d9,#db2777,#fb923c,#6d28d9);background-size:200% 100%}
+[data-theme=claro] body.portal .gauge{border:0;box-shadow:var(--sh)}
+[data-theme=claro] body.portal .gauge span{border:0;box-shadow:inset 0 0 0 4px #f3e8ff}
+[data-theme=claro] body.portal .chips li{border:0;box-shadow:0 4px 12px -6px rgba(109,40,217,.4)}
+[data-theme=claro] body.portal .avatar{background:linear-gradient(135deg,#fb923c,#db2777)}
+body.portal .pubhead h1{margin:.3em 0}
+@media(prefers-reduced-motion:no-preference){
+ body.portal #view>*{animation:rise-in .45s ease-out both}
+ body.portal #view>*:nth-child(2){animation-delay:.06s}body.portal #view>*:nth-child(3){animation-delay:.12s}body.portal #view>*:nth-child(4){animation-delay:.18s}
+ body.portal .bar i{animation:shimmer 3s linear infinite}
+ body.portal #hud{animation:hudpulse 3s ease-in-out infinite}
+ body.portal .grid>.box:hover .ico{animation:wig .6s ease-in-out}
+ [data-theme=claro] body.portal::before{content:"";position:fixed;width:14rem;height:14rem;left:-4rem;bottom:8%;border-radius:50%;background:rgba(251,146,60,.16);animation:drift 9s ease-in-out infinite alternate;pointer-events:none;z-index:-1}
+ [data-theme=claro] body.portal::after{content:"";position:fixed;width:10rem;height:10rem;right:-3rem;top:30%;border-radius:50%;background:rgba(109,40,217,.1);animation:drift 11s ease-in-out infinite alternate-reverse;pointer-events:none;z-index:-1}
+}
+@keyframes rise-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes shimmer{from{background-position:0 0}to{background-position:200% 0}}
+@keyframes hudpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@media(max-width:52rem){
+ body.portal .shell{grid-template-columns:1fr;padding:.6rem .6rem 5.6rem}
+ body.portal #nav{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:8;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;border-radius:20px 20px 0 0;gap:.1rem;padding:.35rem;box-shadow:0 -6px 20px rgba(0,0,0,.12)}
+ body.portal #nav :is(.btn,button){flex:0 0 auto;flex-direction:column;justify-content:center;min-width:4.4rem;font-size:.72rem;min-height:3.2rem;padding:.2rem .4rem}
+ body.portal #search{order:3;flex-basis:100%;max-width:none}
+}
+
+body.portal #nav .ni{font-size:1.3rem;margin-right:.6rem}
+@media(max-width:52rem){body.portal #nav .ni{margin:0;font-size:1.5rem}}
+
+/* correção: o conteúdo principal ocupa toda a coluna da grade (margem automática encolhia a largura a zero) */
+body.portal main{margin:0;width:100%;min-width:0;justify-self:stretch}
+@media(max-width:52rem){body.portal header{position:static}}
+
+/* portal em tela pequena: cabeçalho compacto */
+@media(max-width:52rem){
+ body.portal header .in{gap:.25rem .6rem;padding:.5rem .8rem}
+ body.portal .logo{width:2.2rem}
+ body.portal .brand{font-size:1.05rem;white-space:nowrap}
+ body.portal #hud{font-size:.8rem;padding:.05rem .6rem;margin:0}
+ body.portal #a11ytoggle{min-height:2rem;font-size:.75rem;padding:0 .6rem;margin-left:auto}
+ body.portal #search input{min-height:2.4rem}body.portal #search button{min-height:2.4rem}
+}
+
+body.portal.nonav .shell{grid-template-columns:1fr}
+
+/* revisão em tela cheia: sem coluna reservada para o menu */
+body.portal.immersive .shell{grid-template-columns:1fr}
+
+/* cabeçalho do portal não fica fixo: com o menu de acessibilidade ligado ele ocupa muito espaço */
+body.portal header{position:static}
+body.portal #nav{top:1rem}
