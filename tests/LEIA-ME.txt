@@ -1,0 +1,6 @@
+Testes do LearnPack
+===================
+estatico.py  Verificação estática do PHP, sem precisar de PHP:  python3 tests/estatico.py
+fumaca.sh    Roteiro de fumaça contra um servidor PHP real (php -l em tudo + chamadas à API).
+             php -S localhost:8080 -t .   → instale pelo assistente → BASE=... ADMIN_EMAIL=... ADMIN_PASS=... bash tests/fumaca.sh
+Os testes de interface (Playwright, 144 verificações) rodam contra a prévia funcional e ficam fora do pacote.

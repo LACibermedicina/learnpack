@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $ready) {
     try {
         if (!hash_equals(csrf(), (string)($_POST['c'] ?? ''))) throw new RuntimeException('Sessão expirada. Recarregue a página.');
         if ($needKey && !hash_equals(trim((string)file_get_contents($keyFile)), trim((string)($_POST['key'] ?? '')))) throw new RuntimeException('Chave de instalação incorreta.');
-        $name = trim((string)$_POST['site']) ?: 'Estudo Claro'; $an = trim((string)$_POST['name']); $ae = strtolower(trim((string)$_POST['email'])); $ap = (string)$_POST['pass'];
+        $name = trim((string)$_POST['site']) ?: 'LearnPack'; $an = trim((string)$_POST['name']); $ae = strtolower(trim((string)$_POST['email'])); $ap = (string)$_POST['pass'];
         if ($an === '' || !filter_var($ae, FILTER_VALIDATE_EMAIL)) throw new RuntimeException('Informe nome e e-mail válidos.');
         if (strlen($ap) < 8) throw new RuntimeException('A senha precisa ter 8 ou mais caracteres.');
         if ($ap !== (string)$_POST['pass2']) throw new RuntimeException('As senhas não conferem.');
@@ -83,11 +83,11 @@ $agentsData = isset($_POST['agents']) ? (string)$_POST['agents'] : json_encode($
 $ed = (string)($_POST['editions'] ?? 'ambas');
 ?><!doctype html>
 <html lang="pt-BR" data-theme="claro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Instalação · Estudo Claro</title><meta name="theme-color" content="#2f8f7b"><link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<title>Instalação · LearnPack</title><meta name="theme-color" content="#2f8f7b"><link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/app.css"><link rel="stylesheet" href="assets/install.css"><script src="assets/theme.js"></script></head>
 <body class="inst">
 <main class="wiz" id="wiz" data-csrf="<?= h(csrf()) ?>" data-needkey="<?= $needKey ? '1' : '0' ?>" data-agents="<?= h($agentsData) ?>">
-<header class="wiz-head"><img class="logo-big" src="assets/mark.svg" alt=""><div><h1 id="title" tabindex="-1">Instalação do Estudo Claro</h1><p>Este é o primeiro acesso neste servidor. Em 5 passos o sistema cria o banco de dados, o administrador, as versões e os agentes de IA, e depois se tranca.</p></div></header>
+<header class="wiz-head"><img class="logo-big" src="assets/mark.svg" alt=""><div><h1 id="title" tabindex="-1">Instalação do LearnPack</h1><p>Este é o primeiro acesso neste servidor. Em 5 passos o sistema cria o banco de dados, o administrador, as versões e os agentes de IA, e depois se tranca.</p></div></header>
 <ol class="stepper" aria-label="Etapas da instalação"><li class="on"><span>1</span> Servidor</li><li><span>2</span> Administrador</li><li><span>3</span> Versões</li><li><span>4</span> Agentes de IA</li><li><span>5</span> Concluir</li></ol>
 <div class="bar" aria-hidden="true"><i id="wbar"></i></div>
 <?php if ($err): ?><div class="msg" role="alert"><?= h($err) ?></div><?php endif; ?>
@@ -102,7 +102,7 @@ $ed = (string)($_POST['editions'] ?? 'ambas');
 
 <section class="step" data-step="2" aria-labelledby="s2"><h2 id="s2" tabindex="-1">2. Administrador</h2>
 <?php if ($needKey): ?><div class="f"><label for="ikey">Chave de instalação (conteúdo do arquivo install.key)</label><input id="ikey" name="key" required autocomplete="off"></div><?php endif; ?>
-<div class="f"><label for="s">Nome da plataforma</label><input id="s" name="site" value="<?= $v('site', 'Estudo Claro') ?>"></div>
+<div class="f"><label for="s">Nome da plataforma</label><input id="s" name="site" value="<?= $v('site', 'LearnPack') ?>"></div>
 <div class="f"><label for="n">Nome do administrador</label><input id="n" name="name" required autocomplete="name" value="<?= $v('name') ?>"></div>
 <div class="f"><label for="e">E-mail do administrador</label><input id="e" name="email" type="email" required autocomplete="email" value="<?= $v('email') ?>"></div>
 <div class="f"><label for="p">Senha (mínimo 8 caracteres)</label><input id="p" name="pass" type="password" minlength="8" required autocomplete="new-password"></div>

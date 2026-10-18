@@ -1,4 +1,4 @@
-ESTUDO CLARO — instalação
+LEARNPACK — instalação
 1. Copie TODO o conteúdo desta pasta para o servidor (PHP 8.1+ com pdo_sqlite).
 2. Abra o endereço no navegador. O autoinstalador abre sozinho: verifica o servidor,
    cria o banco SQLite (fora da pasta pública, se possível), o administrador e o conteúdo inicial.

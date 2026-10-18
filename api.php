@@ -38,7 +38,7 @@ function bg_start(array $payload, callable $fn): never {       // responde já e
 }
 switch ($r) {
     case 'boot':
-        out(['user' => pubuser(me()), 'csrf' => csrf(), 'name' => cfg('name') ?: 'Estudo Claro', 'editions' => setting('editions', 'ambas'), 'game' => game_cfg(), 'graph' => graph_cfg()]);
+        out(['user' => pubuser(me()), 'csrf' => csrf(), 'name' => cfg('name') ?: 'LearnPack', 'editions' => setting('editions', 'ambas'), 'game' => game_cfg(), 'graph' => graph_cfg()]);
 
     case 'login':
         $k = ip(); $now = time();
