@@ -97,7 +97,7 @@ CREATE INDEX IF NOT EXISTS i_deep ON deepdives(user_id,package_id);
 CREATE INDEX IF NOT EXISTS i_logs ON logs(user_id,ts);
 CREATE INDEX IF NOT EXISTS i_prog ON progress(user_id,due);
 CREATE INDEX IF NOT EXISTS i_att ON attempts(k,ts);");
-    $add = ['packages' => ["owner_id INTEGER", "kind TEXT DEFAULT 'sistema'", 'objective TEXT', 'strategy TEXT', 'biblio TEXT', 'sources TEXT', "visibility TEXT DEFAULT 'privada'", 'tags TEXT', 'origin_id INTEGER'], 'jobs' => ['payload TEXT', 'progress TEXT'], 'topics' => ['difficulty INTEGER DEFAULT 3', 'refs TEXT']];
+    $add = ['packages' => ["owner_id INTEGER", "kind TEXT DEFAULT 'sistema'", 'objective TEXT', 'strategy TEXT', 'biblio TEXT', 'sources TEXT', "visibility TEXT DEFAULT 'privada'", 'tags TEXT', 'origin_id INTEGER'], 'jobs' => ['payload TEXT', 'progress TEXT'], 'topics' => ['difficulty INTEGER DEFAULT 3', 'refs TEXT'], 'deepdives' => ['depth INTEGER DEFAULT 1', 'parent_id INTEGER']];
     foreach ($add as $t => $cols) { $have = array_column($d->query("PRAGMA table_info($t)")->fetchAll(), 'name'); foreach ($cols as $c) if (!in_array(strtok($c, ' '), $have, true)) $d->exec("ALTER TABLE $t ADD COLUMN $c"); }
 }
 

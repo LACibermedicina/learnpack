@@ -244,3 +244,35 @@ html.std body .gamebox button{background:#ffd23f!important;color:#1a1440!importa
 html.std body .gamebox button.alt{background:#2c2470!important;color:#fff!important}
 
 .fl-card.alt{background:var(--card)!important;color:var(--fg)!important;border:2px solid var(--fg)!important;box-shadow:none!important}.fl-card.alt.deep{background:var(--t3)!important}
+
+/* ---------- tela de acesso: login em destaque e botão “Criar conta” animado ---------- */
+.auth{max-width:38rem;margin:0 auto}.auth-head{display:flex;align-items:center;justify-content:center;gap:.8rem;margin:.2rem 0 .7rem}.auth-head h1{margin:0}.auth .logo-big{width:clamp(2.8rem,10vw,3.8rem)}
+.login-card{border:3px solid var(--fg);border-radius:1.2rem;padding:1.1rem 1.3rem;background:var(--card);box-shadow:0 .6rem 1.8rem rgba(60,30,140,.18)}
+.login-card h2{margin-top:0}.login-card input{font-size:1.1em;min-height:3.2rem}.login-card button[type=submit]{width:100%;min-height:3.4rem;font-size:1.15em}
+.cta-wrap{text-align:center;margin:1.3rem 0 1.1rem}.cta-hint{margin:0 0 .5rem;color:var(--mut)}
+.cta-create{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:.6rem;min-height:3.6rem;padding:.6rem 2rem;border-radius:999px;border:3px solid var(--fg);color:#fff!important;font-weight:800;font-size:1.2em;text-decoration:none;
+  background:linear-gradient(110deg,#5b21b6,#be185d,#5b21b6);background-size:300% 100%;animation:ctaFlow 6s linear infinite,ctaPulse 2.4s ease-out infinite;transition:transform .2s}
+.cta-create::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);animation:ctaShine 3.2s ease-in-out infinite;pointer-events:none}
+.cta-create .spark{display:inline-block;animation:ctaSpark 1.8s ease-in-out infinite}
+.cta-create:hover,.cta-create:focus-visible{transform:translateY(-2px) scale(1.04)}
+@keyframes ctaFlow{to{background-position:300% 0}}
+@keyframes ctaPulse{0%{box-shadow:0 0 0 0 rgba(190,24,93,.55)}70%{box-shadow:0 0 0 1.1rem rgba(190,24,93,0)}100%{box-shadow:0 0 0 0 rgba(190,24,93,0)}}
+@keyframes ctaShine{0%,55%{left:-60%}100%{left:130%}}
+@keyframes ctaSpark{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(20deg) scale(1.3)}}
+.create-panel{animation:pop .35s ease-out}.choices{display:grid;gap:.9rem}
+.choice{display:flex;flex-direction:column;gap:.3rem;padding:1.1rem;border:3px solid var(--fg);border-radius:1rem;background:var(--card);color:var(--fg);text-decoration:none}
+.choice .ic{font-size:2rem}.choice strong{font-size:1.15em}.choice .d{color:var(--mut)}.choice:hover,.choice:focus-visible{background:var(--acf);transform:translateY(-2px)}
+.auth-about{text-align:center;color:var(--mut);margin-top:1.4rem}
+@media (min-width:34rem){.choices{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){.cta-create,.cta-create::after,.cta-create .spark,.create-panel{animation:none}.cta-create:hover,.choice:hover{transform:none}}
+
+/* ---------- aprofundar com o botão + (grafo 3D e fluxograma) e pausa da leitura ---------- */
+.fl-line{display:flex;gap:.45rem;align-items:center}.fl-line .fl-card{flex:1;min-width:0}.fl-topicwrap{display:flex;gap:.5rem;align-items:center}.fl-topicwrap .fl-topic{flex:1}
+.fl-plus{flex:none;min-width:2.8rem;min-height:2.8rem;padding:0;border-radius:50%;font-size:1.5em;font-weight:900;line-height:1;background:#5b21b6;color:#fff;border:3px solid var(--fg);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s}
+.fl-plus:hover:not(:disabled),.fl-plus:focus-visible{transform:scale(1.12) rotate(90deg)}.fl-plus:disabled{opacity:.5;cursor:not-allowed}
+.fl-kids{margin:.35rem 0 .2rem 1.1rem;padding-left:.7rem;border-left:4px dotted var(--ac);display:grid;gap:.4rem}
+.fl-item.fresh>.fl-line .fl-card{animation:pop .5s ease-out}.fl-card .lvl{display:inline-block;margin-left:.45rem;padding:0 .5rem;border-radius:999px;background:var(--ac);color:#fff;font-size:.75em;font-weight:800}
+.expwrap{display:inline-flex;gap:.5rem;align-items:center;flex-wrap:wrap}.pausa[aria-pressed=true]{outline:3px solid var(--ac)}
+@media (prefers-reduced-motion:reduce){.fl-plus,.fl-item.fresh>.fl-line .fl-card{animation:none;transition:none}.fl-plus:hover:not(:disabled){transform:none}}
+
+.toast{pointer-events:none}   /* o aviso não deve bloquear toques nos botões que ficam por baixo (ex.: + do grafo) */

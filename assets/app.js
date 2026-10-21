@@ -1,5 +1,5 @@
 'use strict';
-/* Estudo Claro — SPA em JavaScript puro (sem framework, sem CDN). Todo texto entra via textContent. */
+/* LearnPack — SPA em JavaScript puro (sem framework, sem CDN). Todo texto entra via textContent. */
 const $ = (s, r = document) => r.querySelector(s);
 const el = (t, a = {}, ...k) => {
   const e = document.createElement(t);
@@ -12,7 +12,7 @@ const el = (t, a = {}, ...k) => {
   for (const c of k.flat(9)) e.append(c && c.nodeType ? c : document.createTextNode(c ?? ''));
   return e;
 };
-const S = { user: null, csrf: '', name: 'Estudo Claro', prefs: { theme: 'claro', fs: 22, lh: 1.7, ls: 0.02, tts: 0, rate: 1, a11y: 1 } };
+const S = { user: null, csrf: '', name: 'LearnPack', prefs: { theme: 'claro', fs: 22, lh: 1.7, ls: 0.02, tts: 0, rate: 1, a11y: 1 } };
 let cleanup = null, uid = 0;
 const view = $('#view'), live = $('#live');
 
@@ -42,10 +42,26 @@ function setPref(k, v, save = true) {
   S.prefs[k] = v; applyPrefs();
   if (S.user && save) { clearTimeout(saveT); saveT = setTimeout(() => api('prefs', { body: S.prefs }).catch(() => {}), 400); }
 }
-function say(t) {
+const TTS = { text: '', idx: 0, emu: false };
+function ttsOn() { const w = 'speechSynthesis' in window; return { speaking: w && (speechSynthesis.speaking || speechSynthesis.pending), paused: TTS.emu || (w && speechSynthesis.paused) }; }
+function ttsSync() { const on = ttsOn(); document.querySelectorAll('[data-act="pause"]').forEach((b) => { b.textContent = on.paused ? '▶ Continuar' : '⏸ Pausar'; b.setAttribute('aria-pressed', String(on.paused)); b.setAttribute('aria-label', on.paused ? 'Continuar a leitura' : 'Pausar a leitura'); b.disabled = !on.speaking && !on.paused; }); }
+function say(t, from = 0) {
   if (!('speechSynthesis' in window) || !t) return;
-  speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'pt-BR'; u.rate = S.prefs.rate; speechSynthesis.speak(u);
+  TTS.emu = false; speechSynthesis.cancel(); speechSynthesis.resume(); TTS.text = t; TTS.idx = from;
+  const u = new SpeechSynthesisUtterance(t.slice(from)); u.lang = 'pt-BR'; u.rate = S.prefs.rate;
+  u.onboundary = (e) => { TTS.idx = from + e.charIndex; }; u.onstart = ttsSync; u.onend = u.onerror = () => { if (!TTS.emu) ttsSync(); };
+  speechSynthesis.speak(u); setTimeout(ttsSync, 80);
 }
+function ttsPause() {
+  if (!('speechSynthesis' in window)) return;
+  if (TTS.emu) { TTS.emu = false; say(TTS.text, TTS.idx || 0); return; }
+  if (speechSynthesis.paused) { speechSynthesis.resume(); ttsSync(); return; }
+  if (!speechSynthesis.speaking) return;
+  speechSynthesis.pause();
+  setTimeout(() => { if (!speechSynthesis.paused) { const i = TTS.idx || 0; speechSynthesis.cancel(); TTS.emu = true; TTS.idx = i; } ttsSync(); }, 200);  // navegadores sem pausa real: guarda a posição e retoma dali
+  ttsSync();
+}
+function ttsStop() { TTS.emu = false; if ('speechSynthesis' in window) { speechSynthesis.cancel(); speechSynthesis.resume(); } ttsSync(); }
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-act],[data-speak]'); if (!b) return;
   if (b.dataset.speak) { say(b.dataset.speak.startsWith('#') ? $(b.dataset.speak)?.innerText : b.dataset.speak); return; }
@@ -54,7 +70,8 @@ document.addEventListener('click', (e) => {
   if (a === 'fs-') setPref('fs', Math.max(16, S.prefs.fs - 2));
   if (a === 'theme') setPref('theme', { claro: 'noite', noite: 'azul', azul: 'claro' }[S.prefs.theme] || 'claro');
   if (a === 'read') say($('#view').innerText);
-  if (a === 'stop') speechSynthesis.cancel();
+  if (a === 'stop') ttsStop();
+  if (a === 'pause') ttsPause();
   if (a === 'auto') { autoRead = !autoRead; localStorage.setItem('ecr', autoRead ? '1' : '0'); b.setAttribute('aria-pressed', String(autoRead)); say(autoRead ? 'Leitura ao focar ligada.' : 'Leitura ao focar desligada.'); }
 });
 
@@ -96,6 +113,7 @@ document.getElementById('search')?.addEventListener('submit', (e) => { e.prevent
 const btn = (label, onclick, cls = '') => el('button', { type: 'button', class: cls, onclick }, label);
 const link = (label, href, cls = 'alt') => el('a', { class: 'btn ' + cls, href }, label);
 const speak = (label, target) => el('button', { type: 'button', class: 'alt', 'data-speak': target }, label);
+const pausa = () => el('button', { type: 'button', class: 'alt pausa', 'data-act': 'pause', 'aria-label': 'Pausar a leitura', 'aria-pressed': 'false', disabled: true }, '⏸ Pausar');
 const ouvir = (t, who = '') => el('button', { type: 'button', class: 'alt ouvir', 'data-speak': t, 'aria-label': 'Ouvir ' + (who || t.slice(0, 50)) }, '🔊');
 function field(label, name, o = {}) {
   const i = 'f' + (++uid), ta = o.tag === 'textarea';
@@ -152,21 +170,35 @@ function buildNav() {
 }
 
 /* ---------- telas ---------- */
-function vHome() {
-  const sec = (id, title, ...c) => el('section', { class: 'box', id, 'aria-labelledby': id + '-t' }, el('h2', { id: id + '-t' }, title), c);
-  return el('div', {},
-    el('div', { class: 'hero-logo' }, el('img', { class: 'logo-big', src: LOGO, alt: '' })), el('h1', {}, S.name),
-    el('p', {}, 'Estudo e revisão de Direito Administrativo, feitos para baixa visão: letras grandes, contraste alto, leitura em voz alta e revisões curtas.'),
-    el('nav', { 'aria-label': 'Opções de acesso' }, link('Tenho um token', '#/token'), link('Entrar', '#/entrar'), link('Pedir acesso', '#/pedir')),
-    sec('token', 'Tenho um token', el('p', {}, 'Digite o token recebido para liberar o seu cadastro.'),
+function vHome(mode = '') {
+  // tela de acesso: login e senha no topo; “Criar conta” abre as opções (com token ou solicitar token)
+  const panelMode = ['criar', 'token', 'pedir'].includes(mode) ? mode : '';
+  const back = () => el('p', {}, link('← Voltar às opções', '#/criar'));
+  const panel = (id, title, ...c) => el('section', { class: 'box create-panel', id, 'aria-labelledby': id + '-t' }, el('h2', { id: id + '-t', tabindex: '-1' }, title), c);
+  let extra = null;
+  if (panelMode === 'criar') {
+    extra = panel('criar', 'Como você quer criar a sua conta?',
+      el('div', { class: 'choices' },
+        el('a', { class: 'choice', href: '#/token' }, el('span', { class: 'ic', 'aria-hidden': 'true' }, '🔑'), el('strong', {}, 'Tenho um token'), el('span', { class: 'd' }, 'Recebi um código de convite e quero criar a conta agora.')),
+        el('a', { class: 'choice', href: '#/pedir' }, el('span', { class: 'ic', 'aria-hidden': 'true' }, '✉️'), el('strong', {}, 'Solicitar token de acesso'), el('span', { class: 'd' }, 'Ainda não tenho token: peço ao administrador.'))));
+  } else if (panelMode === 'token') {
+    extra = panel('token', 'Criar conta com token', el('p', {}, 'Digite o token recebido para liberar o seu cadastro.'),
       form([field('Token de acesso', 'token', { req: true, ac: 'off', ph: 'XXXX-XXXX', cls: 'tok' }), field('Seu nome', 'name', { req: true, ac: 'name' }), field('E-mail', 'email', { type: 'email', req: true, ac: 'email' }), field('Crie uma senha (mínimo 8 caracteres)', 'pass', { type: 'password', req: true, min: 8, ac: 'new-password' }), el('p', {}, submit('Cadastrar com token'))],
-        (d) => enter(() => api('register', { body: d })))),
-    sec('entrar', 'Entrar',
+        (d) => enter(() => api('register', { body: d }))), back());
+  } else if (panelMode === 'pedir') {
+    extra = panel('pedir', 'Solicitar token de acesso', el('p', {}, 'Conte quem você é. Quando o administrador aprovar, ele envia um token para o seu e-mail.'),
+      form([field('Seu nome', 'name', { req: true, ac: 'name' }), field('E-mail', 'email', { type: 'email', req: true, ac: 'email' }), field('Mensagem (opcional)', 'msg', { tag: 'textarea', rows: 3 }), el('p', {}, submit('Enviar pedido'))],
+        async (d, f) => { await api('request', { body: d }); f.reset(); notify('Pedido enviado. Quando for aprovado, o administrador enviará um token para o seu e-mail.'); }), back());
+  }
+  return el('div', { class: 'auth' },
+    el('div', { class: 'auth-head' }, el('img', { class: 'logo-big', src: LOGO, alt: '' }), el('h1', {}, S.name)),
+    el('section', { class: 'box login-card', id: 'entrar', 'aria-labelledby': 'entrar-t' }, el('h2', { id: 'entrar-t' }, 'Entrar'),
       form([field('E-mail', 'email', { type: 'email', req: true, ac: 'username' }), field('Senha', 'pass', { type: 'password', req: true, ac: 'current-password' }), el('p', {}, submit('Entrar'))],
         (d) => enter(() => api('login', { body: d })))),
-    sec('pedir', 'Ainda não tenho acesso', el('details', {}, el('summary', { class: 'btn alt', role: 'button' }, 'Pedir acesso'),
-      form([field('Seu nome', 'name', { req: true }), field('E-mail', 'email', { type: 'email', req: true }), field('Mensagem (opcional)', 'msg', { tag: 'textarea', rows: 3 }), el('p', {}, submit('Enviar pedido'))],
-        async (d, f) => { await api('request', { body: d }); f.reset(); notify('Pedido enviado. Quando for aprovado, o administrador enviará um token para o seu e-mail.'); }))));
+    el('div', { class: 'cta-wrap' }, el('p', { class: 'cta-hint' }, 'Ainda não tem conta?'),
+      el('a', { class: 'cta-create', href: '#/criar', 'aria-expanded': String(!!panelMode), 'aria-controls': panelMode || 'criar' }, el('span', { class: 'spark', 'aria-hidden': 'true' }, '✨'), el('span', {}, 'Criar conta'))),
+    extra,
+    el('p', { class: 'auth-about' }, 'Trilhas de estudo com revisão ativa e IA, feitas para todos: letras grandes, contraste alto, leitura em voz alta e revisões curtas.'));
 }
 
 async function vDash() {
@@ -198,15 +230,15 @@ async function vTopic(id) {
 function vStudy(mode, id) {
   const key = 'ecq:' + mode + ':' + (id || 0), G = S.game || {};
   let Q = [], i = 0, hit = 0, shown = false, streak = 0, offered = false;
-  const qh = el('h2', { class: 'qz', tabindex: -1 }, ''), qt = el('p', { class: 'qz', id: 'q' }), prog = el('p', { 'aria-live': 'polite' }), strk = el('span', { class: 'streak', 'aria-live': 'polite' });
+  const qh = el('h2', { class: 'qz', tabindex: -1 }, ''), qt = el('p', { class: 'qz', id: 'qtxt' }), prog = el('p', { 'aria-live': 'polite' }), strk = el('span', { class: 'streak', 'aria-live': 'polite' });
   const topic = el('button', { type: 'button', class: 'alt topicbtn', onclick: () => toggleDeep() }, '');
-  const ansP = el('p', { class: 'qz', id: 'a', tabindex: -1 }), ans = el('section', { class: 'box ans waiting' }, el('h2', {}, 'Resposta'), ansP, speak('Ouvir resposta', '#a'));
+  const ansP = el('p', { class: 'qz', id: 'a', tabindex: -1 }), ans = el('section', { class: 'box ans waiting' }, el('h2', {}, 'Resposta'), ansP, speak('Ouvir resposta', '#a'), pausa());
   const reveal = btn('Mostrar resposta (Espaço)', () => showAns(), 'big');
   const grades = el('div', { class: 'box', hidden: true }, el('p', {}, el('b', {}, 'Como foi? '), '(teclas 1 a 4)'),
     el('div', { class: 'grades' }, [['1 · Errei', 0, 'g0'], ['2 · Difícil', 1, 'g1'], ['3 · Bom', 2, 'g2'], ['4 · Fácil', 3, 'g3']].map(([t, g, c]) => btn(t, () => grade(g), c))));
   const bonus = el('div', { class: 'msg bonus', hidden: true }, el('b', {}, '🎮 Jogo bônus liberado! '), btn('Jogar agora (1 minuto)', () => playNow(), 'big'));
   const deepHost = el('div', { class: 'deephost' });
-  const left = el('section', { class: 'box cardq' }, topic, qh, qt, speak('Ouvir pergunta', '#q'), el('p', {}, 'Tente responder em voz alta ou de cabeça antes de ver a resposta.'), reveal);
+  const left = el('section', { class: 'box cardq' }, topic, qh, qt, speak('Ouvir pergunta', '#qtxt'), pausa(), el('p', {}, 'Tente responder em voz alta ou de cabeça antes de ver a resposta.'), reveal);
   const right = el('div', { class: 'sidecol' }, ans, grades, deepHost);
   const pb = el('div', { class: 'bar', 'aria-hidden': 'true' }, el('i')), sess = el('div', { hidden: true }, el('div', { class: 'tools' }, link('Sair da revisão', '#/', 'alt'), prog, strk), pb, el('div', { class: 'study' }, left, right));
   const sum = el('h2', { tabindex: -1 }), free = el('div', {}, field('Recordação livre: escreva ou diga em voz alta tudo o que lembra deste bloco. Não é salvo.', 'free', { tag: 'textarea', rows: 4 }), el('p', {}, 'Se puder, faça uma pausa de 2 minutos antes de seguir.'));
@@ -249,6 +281,7 @@ function vStudy(mode, id) {
   const keys = (e) => {
     if (e.target.matches('textarea,input') || sess.hidden || document.body.classList.contains('gaming')) return;
     if (e.key === ' ' && !shown) { e.preventDefault(); showAns(); }
+    if (e.key === 'p' || e.key === 'P') { e.preventDefault(); ttsPause(); }
     if (['1', '2', '3', '4'].includes(e.key)) grade(+e.key - 1);
   };
   document.body.classList.add('immersive'); document.addEventListener('keydown', keys); cleanup = () => { document.removeEventListener('keydown', keys); document.body.classList.remove('immersive'); };
@@ -670,9 +703,9 @@ function vChooser() {
   const txt = (o, i) => 'Opção ' + (i + 1) + ': ' + o[2] + '. ' + o[3] + ' ' + o[4].join('. ') + '.';
   const keys = (e) => { if (e.target.matches('input,textarea')) return; const o = O[+e.key - 1]; if (o) choose(o[0]); };
   document.addEventListener('keydown', keys); cleanup = () => document.removeEventListener('keydown', keys);
-  return el('div', {}, el('div', { class: 'hero-logo' }, el('img', { class: 'logo-big', src: LOGO, alt: '' })), el('h1', {}, ico('✨', 'wig'), ' Como você quer usar o Estudo Claro?'),
+  return el('div', {}, el('div', { class: 'hero-logo' }, el('img', { class: 'logo-big', src: LOGO, alt: '' })), el('h1', {}, ico('✨', 'wig'), ' Como você quer usar o LearnPack?'),
     el('p', {}, 'Escolha a versão que combina com você. Dá para trocar depois em Mais → Trocar de versão. As teclas ', el('b', {}, '1'), ' e ', el('b', {}, '2'), ' também escolhem.'),
-    el('div', { class: 'tools' }, btn('🔊 Ouvir as opções', () => say(O.map(txt).join(' ')), 'alt big'), btn('Parar', () => speechSynthesis.cancel(), 'alt')),
+    el('div', { class: 'tools' }, btn('🔊 Ouvir as opções', () => say(O.map(txt).join(' ')), 'alt big'), pausa(), btn('Parar', () => ttsStop(), 'alt')),
     el('div', { class: 'opts' }, O.map((o, i) => el('section', { class: 'box opt', 'aria-labelledby': 'o' + i }, el('div', { class: 'bigico' }, ico(o[1], 'bob')), el('h2', { id: 'o' + i }, o[2]), el('p', {}, o[3]), el('ul', {}, o[4].map((x) => el('li', {}, x))),
       el('div', { class: 'tools' }, btn((i + 1) + ' · Usar ' + o[2], () => choose(o[0]), 'big'), ouvir(txt(o, i)))))),
     el('p', {}, '💡 Se você tem dificuldade para ler a tela, escolha ', el('b', {}, 'Mobile acessível'), '.'));
@@ -757,21 +790,23 @@ async function vLesson(id) {
 const deepItem = (x) => (x.kind === 'card'
   ? el('div', { class: 'box' }, el('b', {}, '🃏 ' + x.q), el('p', {}, x.a), (x.refs || []).length ? el('small', {}, 'Fontes: ' + x.refs.join('; ')) : '', ' ', ouvir(x.q + '. ' + x.a))
   : el('div', { class: 'box' }, el('b', {}, '📘 ' + x.title), el('p', {}, x.summary), (x.points || []).length ? el('ul', {}, x.points.map((p) => el('li', {}, p))) : '', (x.refs || []).length ? el('small', {}, 'Fontes: ' + x.refs.join('; ')) : '', ' ', ouvir(x.title + '. ' + x.summary)));
-function deepBox(c) {
+function deepBox(c, preset) {
   const out = el('div', { class: 'deepout', 'aria-live': 'polite' }), focus = el('input', { type: 'text', placeholder: 'ex.: como cai na prova', 'aria-label': 'Foco do aprofundamento' });
-  const saved = (items, prov) => out.replaceChildren(el('div', { class: 'msg' }, '✅ Salvo no mapa e na biblioteca de aprofundamento' + (prov ? ' (' + prov + ')' : '') + '.'), ...items.map(deepItem),
-    el('div', { class: 'tools' }, link('🕸️ Ver no mapa', '#/grafo/' + c.package_id + '?topico=' + c.topic_id + '&nivel=3', 'alt'), link('🔎 Biblioteca de aprofundamento', '#/aprofundamento/' + c.package_id, 'alt')));
+  const saved = (items, prov) => { c.onSaved && c.onSaved(items); out.replaceChildren(el('div', { class: 'msg' }, '✅ Salvo no mapa e na biblioteca de aprofundamento' + (prov ? ' (' + prov + ')' : '') + '.'), ...items.map(deepItem),
+    el('div', { class: 'tools' }, link('🕸️ Ver no mapa', '#/grafo/' + c.package_id + '?topico=' + c.topic_id + '&nivel=3', 'alt'), link('🔎 Biblioteca de aprofundamento', '#/aprofundamento/' + c.package_id, 'alt'))); };
   const manual = (kind, m) => {
     const ta = field('Cole aqui a resposta da IA (JSON)', 'text', { tag: 'textarea', rows: 5 });
     out.replaceChildren(el('div', { class: 'msg' }, '🛟 ' + m.error + ' Copie o pedido, use qualquer IA ou agente e cole a resposta.'), el('textarea', { rows: 4, readonly: true, 'aria-label': 'Pedido para a IA' }, m.prompt), btn('📋 Copiar pedido', () => navigator.clipboard.writeText(m.prompt).then(() => toast('Copiado!')).catch(() => {}), 'alt'),
-      form([ta, el('p', {}, submit('Salvar resposta'))], async (d) => { const r = await api('deep_apply', { body: { topic_id: c.topic_id, card_id: c.card_id || 0, kind, text: d.text } }); saved(r.items); }));
+      form([ta, el('p', {}, submit('Salvar resposta'))], async (d) => { const r = await api('deep_apply', { body: { topic_id: c.topic_id, card_id: c.card_id || 0, parent: c.parent || 0, expand: c.expand ? 1 : 0, kind, text: d.text } }); saved(r.items); }));
   };
   const run = async (kind) => {
     out.replaceChildren(el('p', {}, '✨ Gerando… pode levar alguns segundos.'));
-    try { const r = await api('deep_generate', { body: { topic_id: c.topic_id, card_id: c.card_id || 0, kind, focus: focus.value } }); if (r.manual) manual(kind, r.manual); else saved(r.items, r.provider); } catch (e) { out.replaceChildren(el('div', { class: 'msg' }, e.message)); }
+    try { const r = await api('deep_generate', { body: { topic_id: c.topic_id, card_id: c.card_id || 0, parent: c.parent || 0, expand: c.expand ? 1 : 0, kind, focus: focus.value } }); if (r.manual) manual(kind, r.manual); else saved(r.items, r.provider); } catch (e) { out.replaceChildren(el('div', { class: 'msg' }, e.message)); }
   };
-  return el('section', { class: 'box deep' }, el('h2', {}, ico('🔎'), ' Aprofundar: ' + c.title), el('p', {}, 'Gera um card ou um tema de aprofundamento, fundamentado na bibliografia principal e alinhado ao objetivo da trilha. Fica salvo no mapa e na biblioteca de aprofundamento.'),
+  const box = el('section', { class: 'box deep' }, el('h2', {}, ico('🔎'), ' Aprofundar: ' + c.title), el('p', {}, 'Gera um card ou um tema de aprofundamento, fundamentado na bibliografia principal e alinhado ao objetivo da trilha. Fica salvo no mapa e na biblioteca de aprofundamento.'),
     el('div', { class: 'f' }, el('label', {}, 'Foco (opcional)'), focus), el('div', { class: 'tools' }, btn('🃏 Gerar card relacionado', () => run('card'), 'alt'), btn('📘 Gerar tema de aprofundamento', () => run('tema'), '')), out);
+  if (preset) manual('card', preset);
+  return box;
 }
 async function vDeepLib(id) {
   const r = await api('deep_list', { qs: { id } }), by = {}; r.items.forEach((x) => { (by[x.topic] = by[x.topic] || []).push(x); });
@@ -780,6 +815,9 @@ async function vDeepLib(id) {
     r.items.length ? Object.entries(by).map(([tp, xs]) => el('section', { class: 'box' }, el('h2', {}, ico(xs[0].emoji || '📖'), ' ', tp), xs.map((x) => el('div', {}, deepItem(x), act('deep_del', { id: x.id }, null, '🗑️ Excluir', 'alt', 'Excluir este item?'))))) : el('div', { class: 'msg' }, 'Ainda não há aprofundamentos. Na revisão, toque no nome do tópico e gere um card ou um tema.'));
 }
 const NORM = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+const DEEPC = ['#ff9ec7', '#ff7fb4', '#ff5fa2', '#e63f8a', '#c42672'];
+const deepNode = (x) => ({ id: 'd' + x.id, type: 'deep', label: x.title, emoji: x.kind === 'tema' ? '📘' : '🔎', r: Math.max(6, 12 - (x.depth || 1)), color: DEEPC[Math.min(4, (x.depth || 1) - 1)], depth: x.depth || 1, data: x });
+const deepParent = (x, has) => (x.parent_id && has('d' + x.parent_id)) ? 'd' + x.parent_id : (x.card_id && has('c' + x.card_id)) ? 'c' + x.card_id : has('t' + x.topic_id) ? 't' + x.topic_id : null;
 function buildGraph(d, st, max) {
   const nodes = [], edges = [], ids = new Set(); let cut = false;
   const N = (n) => { if (nodes.length >= max) { cut = true; return null; } nodes.push(n); ids.add(n.id); return n; }, E = (a, b, len, kind) => { if (ids.has(a) && ids.has(b)) edges.push({ a, b, len, kind }); };
@@ -787,9 +825,9 @@ function buildGraph(d, st, max) {
   const T = d.topics.filter((t) => st.topics.has(t.id) && (!st.only || t.review)), SC = ['#cfe3ff', '#a8e6cf', '#ffe08a', '#ffc233'];
   T.forEach((t, i) => { if (N({ id: 't' + t.id, type: 'topic', label: t.title, emoji: t.emoji || '📖', r: 19, color: SC[t.stars], weak: t.weak, data: t })) E(i ? 't' + T[i - 1].id : 'root', 't' + t.id, 80, 'seq'); });
   if (st.level >= 2) T.forEach((t) => d.cards.filter((c) => c.topic_id === t.id).sort((a, b) => b.due - a.due).slice(0, 6).forEach((c) => { if (N({ id: 'c' + c.id, type: 'card', label: c.q, emoji: '🃏', r: 8, color: '#b79cff', data: c })) E('t' + t.id, 'c' + c.id, 50, 'card'); }));
+  d.deep.filter((x) => st.topics.has(x.topic_id)).slice().sort((a, b) => a.id - b.id).forEach((x) => { const pa = deepParent(x, (i) => ids.has(i)); if (pa && N(deepNode(x))) E(pa, 'd' + x.id, 55, 'deep'); });   // aprofundamentos: aparecem sob o item que foi expandido
   if (st.level >= 3) {
     d.biblio.forEach((b, i) => { if (!b.titulo) return; const n = N({ id: 'b' + i, type: 'biblio', label: b.titulo, emoji: '📚', r: 12, color: '#7ddc9a', data: b }); if (!n) return; let any = false; T.forEach((t) => { if ((t.refs || []).some((x) => NORM(x).includes(NORM(b.titulo)) || NORM(b.titulo).includes(NORM(x)))) { E('t' + t.id, 'b' + i, 95, 'ref'); any = true; } }); if (!any) E('root', 'b' + i, 120, 'ref'); });
-    d.deep.filter((x) => st.topics.has(x.topic_id)).forEach((x) => { if (N({ id: 'd' + x.id, type: 'deep', label: x.title, emoji: '🔎', r: 11, color: '#ff9ec7', data: x })) E('t' + x.topic_id, 'd' + x.id, 60, 'deep'); });
   }
   if (st.level >= 4) d.related.forEach((r) => { if (!N({ id: 'r' + r.id, type: 'other', label: r.name, emoji: r.emoji || '🧭', r: 16, color: '#ffb347', data: r })) return; E('root', 'r' + r.id, 140, 'rel'); d.biblio.forEach((b, i) => { if (r.shared.includes(NORM(b.titulo)) || r.shared.includes(String(b.titulo || '').toLowerCase().trim())) E('r' + r.id, 'b' + i, 100, 'rel'); }); });
   return { nodes, edges, cut };
@@ -818,38 +856,62 @@ function Graph3D(canvas, nodes, edges, o = {}) {
       const r = Math.max(4, n.r * n.ps); ctx.globalAlpha = Math.min(1, 0.4 + n.ps / Z * 0.6); ctx.fillStyle = n.color; ctx.beginPath(); ctx.arc(n.px, n.py, r, 0, 7); ctx.fill();
       ctx.lineWidth = n === sel ? 3.5 : 1.6; ctx.strokeStyle = n === sel ? css.ac : n.weak ? '#e0334f' : css.fg; if (n.weak) ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
       if (n === sel && !reduce) { ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.arc(n.px, n.py, r + 4 + Math.sin(t / 220) * 3, 0, 7); ctx.stroke(); }
+      if (n.born && t - n.born < 1600 && !reduce) { ctx.globalAlpha = 1 - (t - n.born) / 1600; ctx.lineWidth = 3; ctx.strokeStyle = '#e63f8a'; ctx.beginPath(); ctx.arc(n.px, n.py, r + (t - n.born) / 70, 0, 7); ctx.stroke(); }
       ctx.globalAlpha = Math.min(1, 0.5 + n.ps / Z * 0.5); ctx.font = Math.max(8, Math.round(r * 1.1)) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#10131a'; ctx.fillText(n.emoji, n.px, n.py + 1);
       if (n.type === 'trail' || n.type === 'topic' || n === sel || n === hov) { const lab = n.label.length > 26 ? n.label.slice(0, 25) + '…' : n.label; ctx.globalAlpha = 1; ctx.font = '700 ' + Math.max(11, Math.round(12.5 * Math.min(1.5, n.ps / Z + 0.3))) + 'px sans-serif'; ctx.lineWidth = 4; ctx.strokeStyle = css.card; ctx.strokeText(lab, n.px, n.py + r + 11); ctx.fillStyle = css.fg; ctx.fillText(lab, n.px, n.py + r + 11); }
+      n.bx = null;   // botão “+”: expande um nível de profundidade a partir deste item
+      if (o.canExpand && (n.type !== 'card' || n === sel || n === hov) && o.canExpand(n)) {
+        const br = Math.max(8, Math.min(13, r * 0.62)); n.bx = n.px + r * 0.8; n.by = n.py - r * 0.8; n.br = br; ctx.globalAlpha = 1;
+        ctx.fillStyle = '#5b21b6'; ctx.beginPath(); ctx.arc(n.bx, n.by, br, 0, 7); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke(); ctx.lineWidth = 2.2;
+        if (n.busy) { ctx.beginPath(); ctx.arc(n.bx, n.by, br * 0.55, t / 160, t / 160 + 4.2); ctx.stroke(); }
+        else { const k = br * 0.5; ctx.beginPath(); ctx.moveTo(n.bx - k, n.by); ctx.lineTo(n.bx + k, n.by); ctx.moveTo(n.bx, n.by - k); ctx.lineTo(n.bx, n.by + k); ctx.stroke(); }
+      }
     }
     ctx.globalAlpha = 1;
   }
   const hit = (x, y) => { let best = null; for (const n of nodes.slice().sort((a, b) => a.pz - b.pz)) { const r = Math.max(8, n.r * n.ps) + 4; if ((n.px - x) ** 2 + (n.py - y) ** 2 <= r * r) { best = n; break; } } return best; };
+  const hitBadge = (x, y) => { let best = null, bd = 1e9; for (const n of nodes) { if (n.bx == null) continue; const d2 = (n.bx - x) ** 2 + (n.by - y) ** 2; if (d2 <= (n.br + 6) ** 2 && (d2 < bd - 1 || (Math.abs(d2 - bd) <= 1 && best && n.pz < best.pz))) { best = n; bd = d2; } } return best; };   // o + mais próximo do ponto tocado (desempata pelo mais perto da câmera)
   const pos = (e) => { const b = canvas.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
-  canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); pts.set(e.pointerId, pos(e)); down = { x: e.clientX, y: e.clientY, moved: 0 }; if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); } });
+  canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); pts.set(e.pointerId, pos(e)); down = { x: e.clientX, y: e.clientY, moved: 0, badge: hitBadge(...pos(e)) }; if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); } });
   canvas.addEventListener('pointermove', (e) => {
     const p = pos(e); if (pts.has(e.pointerId)) { const q = pts.get(e.pointerId); pts.set(e.pointerId, p);
       if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) zoom = Math.max(0.5, Math.min(2.8, zoom * d / pinch)); pinch = d; }
       else if (down) { const dx = p[0] - q[0], dy = p[1] - q[1]; down.moved += Math.abs(dx) + Math.abs(dy); ay += dx * 0.008; ax = Math.max(-1.4, Math.min(1.4, ax + dy * 0.008)); } }
-    else { const h = hit(p[0], p[1]); if (h !== hov) { hov = h; canvas.style.cursor = h ? 'pointer' : 'grab'; } }
+    else { const h = hit(p[0], p[1]), bb = hitBadge(p[0], p[1]); if (h !== hov) hov = h; canvas.style.cursor = (bb || h) ? 'pointer' : 'grab'; }
   });
-  const up = (e) => { const p = pos(e); if (down && down.moved < 6 && pts.size <= 1) { const h = hit(p[0], p[1]); api2.select(h); } pts.delete(e.pointerId); if (!pts.size) { down = null; pinch = 0; } };
+  const up = (e) => { const p = pos(e); if (down && down.moved < 6 && pts.size <= 1) { if (down.badge && o.onExpand) o.onExpand(down.badge); else { const h = hit(p[0], p[1]); api2.select(h); } } pts.delete(e.pointerId); if (!pts.size) { down = null; pinch = 0; } };
   canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', (e) => { pts.delete(e.pointerId); down = null; });
   canvas.addEventListener('wheel', (e) => { e.preventDefault(); zoom = Math.max(0.5, Math.min(2.8, zoom * Math.exp(-e.deltaY * 0.001))); }, { passive: false });
-  canvas.addEventListener('keydown', (e) => { const k = e.key; if (k === 'ArrowLeft') ay -= 0.12; else if (k === 'ArrowRight') ay += 0.12; else if (k === 'ArrowUp') ax = Math.max(-1.4, ax - 0.12); else if (k === 'ArrowDown') ax = Math.min(1.4, ax + 0.12); else if (k === '+' || k === '=') zoom = Math.min(2.8, zoom * 1.12); else if (k === '-') zoom = Math.max(0.5, zoom / 1.12); else if (k === ' ') auto = !auto; else return; e.preventDefault(); });
+  canvas.addEventListener('keydown', (e) => { const k = e.key; if (k === 'ArrowLeft') ay -= 0.12; else if (k === 'ArrowRight') ay += 0.12; else if (k === 'ArrowUp') ax = Math.max(-1.4, ax - 0.12); else if (k === 'ArrowDown') ax = Math.min(1.4, ax + 0.12); else if (k === '+' || k === '=') zoom = Math.min(2.8, zoom * 1.12); else if (k === '-') zoom = Math.max(0.5, zoom / 1.12); else if (k === ' ') auto = !auto; else if ((k === 'e' || k === 'E') && sel && o.onExpand && o.canExpand && o.canExpand(sel)) o.onExpand(sel); else return; e.preventDefault(); });
   function loop(t) { if (dead) return; if (!canvas.isConnected) { if (++miss > 150) return; } else { miss = 0; resize(); if (W && H) { if (auto && !down) ay += 0.0035 * Math.min(3, (t - last) / 16); draw(t); } } last = t; requestAnimationFrame(loop); }
   requestAnimationFrame(loop);
-  const api2 = { nodes, select(n) { sel = n; if (o.onSelect) o.onSelect(n); }, setAuto(v) { auto = !!v && !reduce; }, reset() { ay = 0.7; ax = 0.35; zoom = 1; }, zoomBy(f) { zoom = Math.max(0.5, Math.min(2.8, zoom * f)); }, destroy() { dead = true; } };
+  const api2 = { nodes, has: (id) => idx.has(id), size: () => ({ n: nodes.length, e: E.length }), setBusy(id, v) { const n = nodes[idx.get(id)]; if (n) n.busy = !!v; },
+    addNodes(nn, ee) { nn.forEach((n) => { const pe = ee.find((e) => e.b === n.id), pn = pe && nodes[idx.get(pe.a)]; n.x = (pn ? pn.x : 0) + (Math.random() - 0.5) * 40; n.y = (pn ? pn.y : 0) + (Math.random() - 0.5) * 40; n.z = (pn ? pn.z : 0) + (Math.random() - 0.5) * 40; n.vx = n.vy = n.vz = 0; n.born = performance.now(); idx.set(n.id, nodes.length); nodes.push(n); });
+      ee.forEach((e) => { const a = idx.get(e.a), b = idx.get(e.b); if (a !== undefined && b !== undefined) E.push([a, b, e.len || 90]); }); for (let k = 0; k < 90; k++) phys(); },
+    select(n) { sel = n; if (o.onSelect) o.onSelect(n); }, setAuto(v) { auto = !!v && !reduce; }, reset() { ay = 0.7; ax = 0.35; zoom = 1; }, zoomBy(f) { zoom = Math.max(0.5, Math.min(2.8, zoom * f)); }, destroy() { dead = true; } };
   canvas.__g3 = api2; return api2;
 }
-function flowchart(d, st, onPick) {
+function flowchart(d, st, onPick, X) {
   const T = d.topics.filter((t) => st.topics.has(t.id) && (!st.only || t.review)), root = el('div', { class: 'flow' });
   root.append(el('button', { type: 'button', class: 'fl-root', onclick: () => onPick({ type: 'trail', data: d.route }) }, ico(d.route.emoji || '🧭'), ' ', el('b', {}, d.route.name), el('br'), el('small', {}, d.route.objective || d.route.goal || '')));
   if (!T.length) root.append(el('p', { class: 'msg' }, 'Nenhum tópico para mostrar com este filtro.'));
+  const cut = (t, n) => (t.length > n ? t.slice(0, n - 1) + '…' : t);
+  const plus = (type, x, label) => {   // botão +: expande um nível de profundidade
+    if (!X) return ''; const c = X.canX(type, x), b = X.busy.has(X.key(type, x));
+    return el('button', { type: 'button', class: 'fl-plus', 'aria-label': 'Expandir um nível de profundidade: ' + cut(label, 60), title: c.ok ? 'Expandir um nível mais fundo' : c.why, disabled: !c.ok, 'aria-disabled': String(b), 'aria-busy': String(b), onclick: () => X.expand(type, x) }, b ? '⏳' : '+');
+  };
+  const item = (type, x) => {
+    const chip = type === 'card' ? el('button', { type: 'button', class: 'alt fl-card' + (x.due ? ' due' : ''), onclick: () => onPick({ type: 'card', data: x }) }, '🃏 ' + cut(x.q, 46))
+      : el('button', { type: 'button', class: 'alt fl-card deep d' + (x.depth || 1), onclick: () => onPick({ type: 'deep', data: x }) }, (x.kind === 'tema' ? '📘 ' : '🔎 ') + cut(x.title, 40), el('span', { class: 'lvl' }, 'Nível ' + (x.depth || 1)));
+    const kids = X ? X.kidsOf(type, x) : [];
+    return el('div', { class: 'fl-item' + (type === 'deep' && X && X.fresh.has(x.id) ? ' fresh' : '') }, el('div', { class: 'fl-line' }, chip, plus(type, x, type === 'card' ? x.q : x.title)),
+      kids.length ? el('div', { class: 'fl-kids', role: 'group', 'aria-label': 'Aprofundamentos de ' + cut(type === 'card' ? x.q : x.title, 40) }, kids.map((k) => item('deep', k))) : '');
+  };
   T.forEach((t) => {
-    const cs = d.cards.filter((c) => c.topic_id === t.id).sort((a, b) => b.due - a.due).slice(0, 8), dp = d.deep.filter((x) => x.topic_id === t.id);
+    const cs = d.cards.filter((c) => c.topic_id === t.id).sort((a, b) => b.due - a.due).slice(0, 8), dp = X ? X.kidsOf('topic', t) : d.deep.filter((x) => x.topic_id === t.id);
     root.append(el('div', { class: 'fl-arrow', 'aria-hidden': 'true' }, '↓'), el('div', { class: 'fl-row' },
-      el('button', { type: 'button', class: 'fl-topic' + (t.weak ? ' weak' : ''), onclick: () => onPick({ type: 'topic', data: t }) }, ico(t.emoji || '📖'), ' ', el('b', {}, t.title), el('br'), el('small', {}, '★'.repeat(t.stars) + '☆'.repeat(3 - t.stars) + ' · ' + t.k + '/' + t.n + ' dominados' + (t.due ? ' · ' + t.due + ' p/ revisar' : '') + (t.weak ? ' · reforçar' : ''))),
-      el('div', { class: 'fl-cards' }, cs.map((c) => el('button', { type: 'button', class: 'alt fl-card' + (c.due ? ' due' : ''), onclick: () => onPick({ type: 'card', data: c }) }, '🃏 ' + (c.q.length > 46 ? c.q.slice(0, 45) + '…' : c.q))), dp.map((x) => el('button', { type: 'button', class: 'alt fl-card deep', onclick: () => onPick({ type: 'deep', data: x }) }, '🔎 ' + (x.title.length > 40 ? x.title.slice(0, 39) + '…' : x.title))))));
+      el('div', { class: 'fl-topicwrap' }, el('button', { type: 'button', class: 'fl-topic' + (t.weak ? ' weak' : ''), onclick: () => onPick({ type: 'topic', data: t }) }, ico(t.emoji || '📖'), ' ', el('b', {}, t.title), el('br'), el('small', {}, '★'.repeat(t.stars) + '☆'.repeat(3 - t.stars) + ' · ' + t.k + '/' + t.n + ' dominados' + (t.due ? ' · ' + t.due + ' p/ revisar' : '') + (t.weak ? ' · reforçar' : ''))), plus('topic', t, t.title)),
+      el('div', { class: 'fl-cards' }, cs.map((c) => item('card', c)), dp.map((x) => item('deep', x)))));
   });
   return root;
 }
@@ -858,28 +920,61 @@ async function vGraph(id, Q) {
   if (G.on === false) return el('div', {}, el('h1', {}, 'Mapa de conhecimento'), el('div', { class: 'msg' }, 'O mapa está desligado pelo administrador.'));
   const d = await api('graph_data', { qs: { id } }), foco = Q && Q.get('topico') ? +Q.get('topico') : 0;
   const st = { level: +(Q && Q.get('nivel')) || G.level || 2, mode: (Q && Q.get('modo')) || G.mode || '3d', only: Q && Q.get('rev') === '1', topics: new Set(foco ? [foco] : d.topics.map((t) => t.id)) };
-  const LV = ['1 · Essencial: trilha e tópicos', '2 · Com cartões', '3 · Com bibliografia e aprofundamentos', '4 · Rede completa: outras trilhas vinculadas'];
-  const stage = el('div', { class: 'stage' }), panel = el('aside', { class: 'box gpanel', 'aria-live': 'polite' }), chips = el('div', { class: 'chips2 tchips', role: 'group', 'aria-label': 'Tópicos incluídos' }), count = el('p', { class: 'gcount' }), list = el('details', { class: 'box' }); let g3 = null;
+  const LV = ['1 · Essencial: trilha e tópicos (e as expansões que você fez)', '2 · Com cartões', '3 · Com bibliografia e aprofundamentos', '4 · Rede completa: outras trilhas vinculadas'];
+  const stage = el('div', { class: 'stage' }), panel = el('aside', { class: 'box gpanel', 'aria-live': 'polite' }), chips = el('div', { class: 'chips2 tchips', role: 'group', 'aria-label': 'Tópicos incluídos' }), count = el('p', { class: 'gcount' }), list = el('details', { class: 'box' }); let g3 = null, curM = null, curSel = null;
+  const FLOWTXT = 'Fluxograma simples: a trilha, os tópicos em ordem e os cartões de cada um. Cartões com borda forte estão para revisar. Use o botão + de um item para ir um nível mais fundo.';
+  const maxD = G.max_depth || 3, busy = new Set(), fresh = new Set(), keyOf = (type, x) => (type === 'topic' ? 't' : type === 'card' ? 'c' : 'd') + x.id;
+  const kidsOf = (type, x) => d.deep.filter((y) => type === 'topic' ? (y.topic_id === x.id && !y.card_id && !y.parent_id) : type === 'card' ? (y.card_id === x.id && !y.parent_id) : y.parent_id === x.id);
+  const canX = (type, x) => type === 'deep' && (x.depth || 1) >= maxD ? { ok: false, why: 'Nível máximo de profundidade (' + maxD + ') atingido.' } : kidsOf(type, x).length >= 9 ? { ok: false, why: 'Limite de 9 itens nesta ramificação.' } : { ok: true };
+  const flowView = () => flowchart(d, st, select, { kidsOf, canX, busy, fresh, key: keyOf, expand });
+  const redrawFlow = () => { const y = scrollY, ae = document.activeElement, lab = ae && ae.classList && ae.classList.contains('fl-plus') ? ae.getAttribute('aria-label') : null; stage.replaceChildren(flowView(), el('p', { class: 'legend' }, FLOWTXT)); scrollTo(0, y); if (lab) { const nb = [...stage.querySelectorAll('.fl-plus')].find((b) => b.getAttribute('aria-label') === lab); if (nb) nb.focus(); } setTimeout(() => fresh.clear(), 800); };
+  const sizeTxt = () => { if (g3) { const z = g3.size(); count.textContent = z.n + ' itens · ' + z.e + ' ligações'; } };
+  function ingest(items) {   // coloca os itens recém-criados no grafo ou no fluxograma sem recarregar a tela
+    const add = (items || []).filter((it) => !d.deep.some((y) => y.id === it.id)); if (!add.length) return;
+    add.sort((a, b) => a.id - b.id).forEach((it) => { d.deep.push(it); fresh.add(it.id); });
+    if (g3) { const nn = [], ee = []; add.forEach((it) => { if (!st.topics.has(it.topic_id)) return; const pa = deepParent(it, (i) => g3.has(i)); if (!pa) return; const n = deepNode(it); nn.push(n); ee.push({ a: pa, b: n.id, len: 55 }); }); if (nn.length) { g3.addNodes(nn, ee); sizeTxt(); paintList(curM); } }
+    else redrawFlow();
+  }
+  function openManual(type, x, m) {   // IA fora do ar: pedido para copiar e resposta para colar, já ligados a este ramo
+    const ctx = { topic_id: type === 'topic' ? x.id : x.topic_id, package_id: d.route.id, card_id: type === 'card' ? x.id : type === 'deep' ? (x.card_id || 0) : 0, parent: type === 'deep' ? x.id : 0, expand: true, title: x.title || x.q || 'item', onSaved: ingest };
+    panel.replaceChildren(el('h2', {}, '➕ Expandir nível'), deepBox(ctx, m)); if (panel.scrollIntoView) panel.scrollIntoView({ block: 'nearest' });
+  }
+  async function expand(type, x) {   // botão +: gera o próximo nível de profundidade sob este item
+    const key = keyOf(type, x), c = canX(type, x); if (busy.has(key)) return; if (!c.ok) { toast(c.why); return; }
+    busy.add(key); if (g3) g3.setBusy(key, true); else redrawFlow(); notify('Gerando o próximo nível de profundidade…'); let man = false;
+    try {
+      const body = type === 'topic' ? { topic_id: x.id } : type === 'card' ? { topic_id: x.topic_id, card_id: x.id } : { parent: x.id, topic_id: x.topic_id };
+      const r = await api('deep_generate', { body: { ...body, kind: 'card', expand: 1 } });
+      if (r.manual) { man = true; openManual(type, x, r.manual); return; }
+      ingest(r.items); const lv = r.items[0] ? (r.items[0].depth || 1) : 1; toast('➕ ' + r.items.length + (r.items.length === 1 ? ' item novo' : ' itens novos') + ' no nível ' + lv + (r.provider ? ' · ' + r.provider : ''));
+    } catch (e) { toast(e.message); }
+    finally { busy.delete(key); if (g3) g3.setBusy(key, false); else redrawFlow(); if (!man && curSel && curSel.data === x) select(curSel); }
+  }
+  const expBtn = (type, x) => { const c = canX(type, x), n = kidsOf(type, x).length, lv = type === 'deep' ? (x.depth || 1) + 1 : 1, b = btn('➕ Expandir nível ' + lv, () => expand(type, x), 'alt'); b.disabled = !c.ok || busy.has(keyOf(type, x)); if (!c.ok) b.title = c.why;
+    return el('span', { class: 'expwrap' }, b, n ? el('small', {}, n + (n === 1 ? ' item' : ' itens') + ' neste ramo') : '', c.ok ? '' : el('small', {}, c.why)); };
   const info = (txt) => panel.replaceChildren(el('h2', {}, 'Detalhes'), el('p', {}, txt));
   function select(n) {
-    if (!n) return info('Toque ou clique em um item para ver os detalhes.'); const x = n.data, t = n.type, pid = d.route.id, btns = [];
+    curSel = n || null; if (!n) return info('Toque ou clique em um item para ver os detalhes.'); const x = n.data, t = n.type, pid = d.route.id, btns = [];
     if (t === 'trail') panel.replaceChildren(el('h2', {}, ico(x.emoji || '🧭'), ' ', x.name), el('p', {}, x.objective || x.goal || ''), el('div', { class: 'tools' }, link('📊 Painel da trilha', '#/trilha/' + pid, 'alt'), link('🔎 Biblioteca de aprofundamento', '#/aprofundamento/' + pid, 'alt')));
     else if (t === 'topic') { const host = el('div'); panel.replaceChildren(el('h2', {}, ico(x.emoji || '📖'), ' ', x.title), el('p', {}, '★'.repeat(x.stars) + '☆'.repeat(3 - x.stars) + ' · ' + x.k + ' de ' + x.n + ' cartões dominados' + (x.acc != null ? ' · acertos ' + x.acc + '%' : '') + (x.weak ? ' · reforço recomendado' : '')), (x.refs || []).length ? el('p', {}, el('b', {}, 'Fontes: '), x.refs.join('; ')) : '',
-      el('div', { class: 'tools' }, link('📖 Abrir assunto', '#/topico/' + x.id, 'alt'), link('🃏 Praticar', '#/revisar/topic/' + x.id, 'alt'), btn('🔎 Aprofundar', () => { host.replaceChildren(deepBox({ topic_id: x.id, package_id: pid, card_id: 0, title: x.title })); }, '')), host); }
-    else if (t === 'card') { const tp = d.topics.find((y) => y.id === x.topic_id), host = el('div'), a = el('p', { hidden: true }, el('b', {}, 'Resposta: '), x.a); panel.replaceChildren(el('h2', {}, '🃏 Cartão'), el('p', { class: 'qz' }, x.q), a, el('div', { class: 'tools' }, btn('Mostrar resposta', () => { a.hidden = false; }, 'alt'), btn('🔎 Aprofundar', () => { host.replaceChildren(deepBox({ topic_id: x.topic_id, package_id: pid, card_id: x.id, title: tp ? tp.title : 'tópico' })); }, ''), ouvir(x.q + '. ' + x.a)), host); }
+      el('div', { class: 'tools' }, link('📖 Abrir assunto', '#/topico/' + x.id, 'alt'), link('🃏 Praticar', '#/revisar/topic/' + x.id, 'alt'), btn('🔎 Aprofundar', () => { host.replaceChildren(deepBox({ topic_id: x.id, package_id: pid, card_id: 0, title: x.title, onSaved: ingest })); }, ''), expBtn('topic', x)), host); }
+    else if (t === 'card') { const tp = d.topics.find((y) => y.id === x.topic_id), host = el('div'), a = el('p', { hidden: true }, el('b', {}, 'Resposta: '), x.a); panel.replaceChildren(el('h2', {}, '🃏 Cartão'), el('p', { class: 'qz' }, x.q), a, el('div', { class: 'tools' }, btn('Mostrar resposta', () => { a.hidden = false; }, 'alt'), btn('🔎 Aprofundar', () => { host.replaceChildren(deepBox({ topic_id: x.topic_id, package_id: pid, card_id: x.id, title: tp ? tp.title : 'tópico', onSaved: ingest })); }, ''), ouvir(x.q + '. ' + x.a), pausa(), expBtn('card', x)), host); }
     else if (t === 'biblio') panel.replaceChildren(el('h2', {}, '📚 ', x.titulo), el('p', {}, [x.autores, x.ano].filter(Boolean).join(', ') + (x.tipo ? ' · ' + x.tipo : '')), x.por_que ? el('p', {}, x.por_que) : '', x.verificada === false ? el('p', {}, '⚠️ Confirme esta referência.') : '', safeUrl(x.url) ? el('a', { href: x.url, target: '_blank', rel: 'noopener noreferrer' }, 'abrir fonte') : '');
-    else if (t === 'deep') panel.replaceChildren(el('h2', {}, '🔎 Aprofundamento'), deepItem(x), el('div', { class: 'tools' }, link('🔎 Biblioteca de aprofundamento', '#/aprofundamento/' + pid, 'alt')));
+    else if (t === 'deep') panel.replaceChildren(el('h2', {}, '🔎 Aprofundamento · nível ' + (x.depth || 1)), deepItem(x), el('div', { class: 'tools' }, expBtn('deep', x), link('🔎 Biblioteca de aprofundamento', '#/aprofundamento/' + pid, 'alt')));
     else if (t === 'other') panel.replaceChildren(el('h2', {}, ico(x.emoji || '🧭'), ' ', x.name), el('p', {}, 'Trilha vinculada' + (x.common.length ? ' por etiquetas em comum: ' + x.common.join(', ') : '') + (x.shared.length ? ' · obras em comum: ' + x.shared.length : '') + (x.linked ? ' · mesma origem' : '') + '.'), el('div', { class: 'tools' }, link('🕸️ Abrir o mapa dela', '#/grafo/' + x.id, 'alt'), link('Ver a trilha', '#/comunidade/' + x.id, 'alt')));
   }
   const pick = (n) => { if (g3) g3.select(n); else select(n); };
   function paint() {
-    if (g3) { g3.destroy(); g3 = null; } const M = buildGraph(d, st, G.max_nodes || 160);
+    if (g3) { g3.destroy(); g3 = null; } const M = curM = buildGraph(d, st, G.max_nodes || 160);
     count.textContent = M.nodes.length + ' itens · ' + M.edges.length + ' ligações' + (M.cut ? ' (limitado para ficar legível; reduza o nível ou escolha menos tópicos)' : '');
     if (st.mode === '3d') {
       const cv = el('canvas', { class: 'g3d', tabindex: 0, role: 'img', 'aria-label': 'Grafo 3D do conhecimento da trilha. Arraste para girar, use a roda ou as teclas + e - para aproximar e as setas para girar. A lista abaixo traz os mesmos itens.', 'data-nodes': M.nodes.length });
-      const legend = el('p', { class: 'legend' }, '🌐 arraste para girar · roda ou pinça para aproximar · clique num item. Cores: ', '🟦 tópico (estrelas mudam a cor) · 🟪 cartão · 🟩 bibliografia · 🟧 outra trilha · 🟥 borda tracejada: reforçar'), ctl = el('div', { class: 'tools' }, btn('⏯ Girar', () => { g3.setAuto(!(cv.dataset.auto === '1')); cv.dataset.auto = cv.dataset.auto === '1' ? '0' : '1'; }, 'alt'), btn('🎯 Centralizar', () => g3.reset(), 'alt'), btn('➕', () => g3.zoomBy(1.2), 'alt'), btn('➖', () => g3.zoomBy(1 / 1.2), 'alt'));
-      cv.dataset.auto = G.auto === false ? '0' : '1'; stage.replaceChildren(cv, ctl, legend); g3 = Graph3D(cv, M.nodes, M.edges, { auto: G.auto !== false, onSelect: select });
-    } else stage.replaceChildren(flowchart(d, st, select), el('p', { class: 'legend' }, 'Fluxograma simples: a trilha, os tópicos em ordem e os cartões de cada um. Cartões com borda forte estão para revisar.'));
+      const legend = el('p', { class: 'legend' }, '🌐 arraste para girar · roda ou pinça para aproximar · clique num item · botão roxo + (ou tecla E) aprofunda um nível. Cores: ', '🟦 tópico (estrelas mudam a cor) · 🟪 cartão · 🟩 bibliografia · 🟧 outra trilha · 🟥 borda tracejada: reforçar'), ctl = el('div', { class: 'tools' }, btn('⏯ Girar', () => { g3.setAuto(!(cv.dataset.auto === '1')); cv.dataset.auto = cv.dataset.auto === '1' ? '0' : '1'; }, 'alt'), btn('🎯 Centralizar', () => g3.reset(), 'alt'), btn('➕', () => g3.zoomBy(1.2), 'alt'), btn('➖', () => g3.zoomBy(1 / 1.2), 'alt'));
+      cv.dataset.auto = G.auto === false ? '0' : '1'; stage.replaceChildren(cv, ctl, legend); g3 = Graph3D(cv, M.nodes, M.edges, { auto: G.auto !== false, onSelect: select, canExpand: (n) => ['topic', 'card', 'deep'].includes(n.type) && canX(n.type, n.data).ok, onExpand: (n) => { g3.select(n); expand(n.type, n.data); } });
+    } else stage.replaceChildren(flowView(), el('p', { class: 'legend' }, FLOWTXT));
+    paintList(M);
+  }
+  function paintList(M) {
     const groups = { topic: 'Tópicos', card: 'Cartões', biblio: 'Bibliografia', deep: 'Aprofundamentos', other: 'Outras trilhas' };
     list.replaceChildren(el('summary', { class: 'btn alt', role: 'button' }, 'Ver os itens como lista'), ...Object.entries(groups).map(([k, lb]) => { const xs = M.nodes.filter((n) => n.type === k); return xs.length ? el('div', {}, el('h3', {}, lb + ' (' + xs.length + ')'), el('ul', {}, xs.map((n) => el('li', {}, el('button', { type: 'button', class: 'alt', onclick: () => pick(n) }, n.emoji + ' ' + n.label))))) : ''; }));
   }
@@ -977,9 +1072,9 @@ async function vAdmin(tab) {
         select('Paleta de cores', 'g_palette', [['arcade', 'Arcade (azul-noite e cores vivas)'], ['gameboy', 'Game Boy (tons de verde)'], ['neon', 'Neon'], ['doce', 'Doce (tons claros)']], g.palette),
         field('XP máximo por partida (0 a 100)', 'g_max', { type: 'number', value: g.max_xp }), field('Partidas por dia por usuário', 'g_daily', { type: 'number', value: g.daily }),
         el('h2', {}, '🕸️ Mapa de conhecimento'), select('Mapa', 'm_on', [[1, 'Ligado'], [0, 'Desligado']], m.on ? 1 : 0), select('Nível de complexidade inicial', 'm_level', [[1, '1 · Essencial'], [2, '2 · Com cartões'], [3, '3 · Com bibliografia'], [4, '4 · Rede completa']], m.level),
-        select('Visualização inicial', 'm_mode', [['3d', 'Grafo 3D'], ['fluxo', 'Fluxograma simples']], m.mode), el('div', { class: 'f' }, el('label', {}, el('input', { type: 'checkbox', name: 'm_auto', checked: m.auto }), ' Girar o grafo sozinho')), field('Máximo de itens no mapa (30 a 400)', 'm_max', { type: 'number', value: m.max_nodes }),
+        select('Visualização inicial', 'm_mode', [['3d', 'Grafo 3D'], ['fluxo', 'Fluxograma simples']], m.mode), el('div', { class: 'f' }, el('label', {}, el('input', { type: 'checkbox', name: 'm_auto', checked: m.auto }), ' Girar o grafo sozinho')), field('Máximo de itens no mapa (30 a 400)', 'm_max', { type: 'number', value: m.max_nodes }), field('Profundidade máxima dos aprofundamentos (1 a 5 níveis)', 'm_depth', { type: 'number', value: m.max_depth || 3 }),
         el('p', {}, submit('Salvar', 'big'))],
-        async (d, fe) => { const games = [...fe.querySelectorAll('input[name=games]:checked')].map((x) => x.value); await api('a_game_set', { body: { game: { on: +d.g_on === 1, streak: d.g_streak, seconds: d.g_seconds, games, random: +d.g_random === 1, speed: d.g_speed, palette: d.g_palette, max_xp: d.g_max, daily: d.g_daily }, graph: { on: +d.m_on === 1, level: d.m_level, mode: d.m_mode, auto: !!d.m_auto, max_nodes: d.m_max } } }); const b = await api('boot'); S.game = b.game; S.graph = b.graph; notify('Salvo.'); await render(true); })));
+        async (d, fe) => { const games = [...fe.querySelectorAll('input[name=games]:checked')].map((x) => x.value); await api('a_game_set', { body: { game: { on: +d.g_on === 1, streak: d.g_streak, seconds: d.g_seconds, games, random: +d.g_random === 1, speed: d.g_speed, palette: d.g_palette, max_xp: d.g_max, daily: d.g_daily }, graph: { on: +d.m_on === 1, level: d.m_level, mode: d.m_mode, auto: !!d.m_auto, max_nodes: d.m_max, max_depth: d.m_depth } } }); const b = await api('boot'); S.game = b.game; S.graph = b.graph; notify('Salvo.'); await render(true); })));
     return root;
   }
   if (tab === 'versoes') {
@@ -1063,7 +1158,7 @@ async function render(keep) {
   let node, title = S.name;
   try {
     if (!ED() || r === 'versao') { node = vChooser(); title = 'Escolha a versão'; }
-    else if (!S.user) { node = vHome(); }
+    else if (!S.user) { node = vHome(r); title = r === 'criar' ? 'Criar conta' : r === 'token' ? 'Criar conta com token' : r === 'pedir' ? 'Solicitar token' : 'Entrar'; }
     else if (r === 'topicos') { node = await vTopics(); title = 'Conteúdo'; }
     else if (r === 'resumos') { node = await vLibrary(); title = 'Resumos visuais'; }
     else if (r === 'resumo') { node = await vDeck(+a); title = 'Resumo visual'; }
@@ -1089,13 +1184,13 @@ async function render(keep) {
     else if (r === 'admin' && S.user.role === 'admin') { node = await vAdmin(a || 'users'); title = 'Administração'; }
     else { node = await vDash(); title = 'Início'; }
   } catch (e) {
-    if (e.status === 401) { S.user = null; buildNav(); node = vHome(); }
+    if (e.status === 401) { S.user = null; buildNav(); node = vHome(''); }
     else node = el('div', {}, el('h1', {}, 'Não foi possível carregar'), el('p', {}, S.offline || !navigator.onLine ? 'Você está sem conexão. Revisões já abertas continuam funcionando.' : e.message), btn('Tentar de novo', () => render(), 'big'));
   }
   const y = scrollY; view.replaceChildren(node); document.title = title + ' · ' + S.name;
   if (keep) scrollTo(0, y);
   else { const h = $('h1', view); if (h) { h.tabIndex = -1; h.focus(); } scrollTo(0, 0); }
-  if (!S.user && ['token', 'entrar', 'pedir'].includes(r)) { const s = $('#' + r); s && s.scrollIntoView(); const f = $('input', s); f && f.focus(); }
+  if (!S.user && ['criar', 'token', 'entrar', 'pedir'].includes(r)) { const s = $('#' + r); if (s) { s.scrollIntoView(); const f = $('input', s) || $('a.choice', s); f && f.focus(); } }
   if (r === 'ajustes') afterSettings();
   document.querySelectorAll('#nav a').forEach((x) => { const h = (x.getAttribute('href') || '').split('/')[1] || ''; x.classList.toggle('cur', h === (r || '')); });
 }

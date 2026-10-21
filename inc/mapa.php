@@ -7,8 +7,8 @@ function clean_game(array $g): array {
         'palette' => in_array($g['palette'] ?? '', ['arcade', 'gameboy', 'neon', 'doce'], true) ? $g['palette'] : 'arcade', 'max_xp' => max(0, min(100, (int)($g['max_xp'] ?? 30))), 'daily' => max(1, min(30, (int)($g['daily'] ?? 5)))];
 }
 function game_cfg(): array { $d = ['on' => true, 'streak' => 3, 'seconds' => 60, 'games' => ['snake', 'car', 'tetris'], 'random' => true, 'speed' => 2, 'palette' => 'arcade', 'max_xp' => 30, 'daily' => 5]; return clean_game(array_merge($d, jd(setting('game_cfg', '')))); }
-function clean_graph(array $g): array { return ['on' => !empty($g['on']), 'level' => max(1, min(4, (int)($g['level'] ?? 2))), 'mode' => ($g['mode'] ?? '3d') === 'fluxo' ? 'fluxo' : '3d', 'auto' => !empty($g['auto']), 'max_nodes' => max(30, min(400, (int)($g['max_nodes'] ?? 160)))]; }
-function graph_cfg(): array { return clean_graph(array_merge(['on' => true, 'level' => 2, 'mode' => '3d', 'auto' => true, 'max_nodes' => 160], jd(setting('graph_cfg', '')))); }
+function clean_graph(array $g): array { return ['on' => !empty($g['on']), 'level' => max(1, min(4, (int)($g['level'] ?? 2))), 'mode' => ($g['mode'] ?? '3d') === 'fluxo' ? 'fluxo' : '3d', 'auto' => !empty($g['auto']), 'max_nodes' => max(30, min(400, (int)($g['max_nodes'] ?? 160))), 'max_depth' => max(1, min(5, (int)($g['max_depth'] ?? 3)))]; }
+function graph_cfg(): array { return clean_graph(array_merge(['on' => true, 'level' => 2, 'mode' => '3d', 'auto' => true, 'max_nodes' => 160, 'max_depth' => 3], jd(setting('graph_cfg', '')))); }
 
 function graph_data(int $uid, int $pid): array {
     $pk = q('SELECT id,name,emoji,goal,objective,kind,tags,origin_id,biblio FROM packages WHERE id=?', [$pid])->fetch(); $now = time();
@@ -27,7 +27,7 @@ function graph_data(int $uid, int $pid): array {
     $cards = q('SELECT c.id,c.topic_id,c.q,c.a,(p.id IS NULL OR p.due<=?) due FROM cards c JOIN topics t ON t.id=c.topic_id LEFT JOIN progress p ON p.card_id=c.id AND p.user_id=? WHERE t.package_id=? ORDER BY c.id LIMIT 600', [$now, $uid, $pid])->fetchAll();
     foreach ($cards as &$c) $c['due'] = (bool)$c['due'];
     unset($c);
-    $deep = q('SELECT id,topic_id,card_id,kind,title,q,a,summary FROM deepdives WHERE user_id=? AND package_id=? ORDER BY id', [$uid, $pid])->fetchAll();
+    $deep = q('SELECT id,topic_id,card_id,kind,title,q,a,summary,depth,parent_id FROM deepdives WHERE user_id=? AND package_id=? ORDER BY id', [$uid, $pid])->fetchAll();
     $tags = array_map('mb_strtolower', jd($pk['tags'])); $my = jd($pk['biblio']); $myT = array_map(fn($b) => mb_strtolower(trim((string)($b['titulo'] ?? ''))), $my); $rel = [];
     foreach (q('SELECT id,name,emoji,kind,tags,origin_id,biblio FROM packages WHERE id!=? ORDER BY id DESC LIMIT 120', [$pid])->fetchAll() as $o) {
         if (!can_view($uid, (int)$o['id'])) continue;
@@ -39,10 +39,12 @@ function graph_data(int $uid, int $pid): array {
     usort($rel, fn($a, $b) => $b['score'] <=> $a['score']);
     return ['route' => ['id' => (int)$pk['id'], 'name' => $pk['name'], 'emoji' => $pk['emoji'], 'goal' => $pk['goal'], 'objective' => $pk['objective']], 'topics' => $topics, 'cards' => $cards, 'biblio' => $my, 'deep' => $deep, 'related' => array_slice($rel, 0, 8)];
 }
-function deep_prompt(array $pk, array $t, ?array $card, string $kind, string $focus, bool $search): string {
+function deep_prompt(array $pk, array $t, ?array $card, string $kind, string $focus, bool $search, array $ex = []): string {
     $bib = implode("\n", array_slice(array_map(fn($b) => '- ' . trim(($b['titulo'] ?? '') . ' (' . trim(($b['autores'] ?? '') . ' ' . ($b['ano'] ?? '')) . ')') . (($b['por_que'] ?? '') ? ': ' . $b['por_que'] : ''), jd($pk['biblio'])), 0, 10));
     $p = 'Data de hoje: ' . date('d/m/Y') . ".\nTRILHA: {$pk['name']}\nOBJETIVO DA TRILHA: " . ($pk['objective'] ?: $pk['goal']) . "\nBIBLIOGRAFIA PRINCIPAL:\n" . ($bib ?: '(nenhuma cadastrada: use obras consagradas e marque o que precisa ser conferido)') . "\n\nTÓPICO: {$t['title']}\nRESUMO ATUAL DO TÓPICO:\n" . implode(' ', array_filter(explode("\n", (string)$t['summary']))) . "\n";
     if ($card) $p .= "CARTÃO EM ESTUDO: pergunta «{$card['q']}» / resposta «{$card['a']}»\n"; if ($focus !== '') $p .= "FOCO PEDIDO PELO ESTUDANTE: $focus\n";
+    if (($ex['depth'] ?? 1) > 1) $p .= 'NÍVEL DE PROFUNDIDADE: ' . (int)$ex['depth'] . " (1 = básico). Vá além do cartão em estudo: exceções, casos-limite, fundamentos, divergências e ligações com outros institutos. Não repita o que o cartão já diz.\n";
+    if (!empty($ex['avoid'])) $p .= "NÃO REPITA ESTES ITENS JÁ CRIADOS NESTA RAMIFICAÇÃO:\n" . implode("\n", array_map(fn($x) => '- ' . mb_substr((string)$x, 0, 140), array_slice($ex['avoid'], 0, 12))) . "\n";
     $rule = $search ? 'Se precisar confirmar algo, pesquise fontes atuais.' : 'Use seu conhecimento e sinalize o que precisa ser conferido.';
     if ($kind === 'card') return $p . "\nTAREFA: crie de 1 a 3 CARTÕES de aprofundamento (pergunta e resposta curta) relacionados a este tópico, alinhados ao objetivo da trilha e fundamentados na bibliografia principal. $rule Não invente fatos.\nResponda SOMENTE com JSON: {\"cards\":[[\"pergunta\",\"resposta curta\"]],\"refs\":[\"títulos da bibliografia usados\"]}";
     return $p . "\nTAREFA: escreva um TEMA DE APROFUNDAMENTO sobre este tópico: um título, um resumo de 5 a 8 frases fundamentado na bibliografia principal e alinhado ao objetivo da trilha, 3 a 5 pontos-chave e as fontes usadas (títulos da bibliografia). Textos claros e curtos, em português do Brasil. $rule Não invente fatos nem citações.\nResponda SOMENTE com JSON: {\"title\":\"\",\"summary\":\"\",\"points\":[\"\"],\"refs\":[\"\"]}";
@@ -57,14 +59,14 @@ function norm_deepdive(array $j, string $kind, string $title): array {
     return ['title' => (string)first($j, ['title', 'titulo', 'título'], 'Aprofundamento: ' . $title), 'summary' => $sum, 'points' => as_list(first($j, ['points', 'pontos', 'pontos_chave', 'key_points'], [])), 'refs' => $refs];
 }
 /** Guarda o aprofundamento (biblioteca de aprofundamento da trilha, mapa e, para temas, a biblioteca de materiais). */
-function deep_save(int $uid, array $pk, array $t, ?array $card, string $kind, array $x): array {
-    $ids = []; $now = time(); $ins = 'INSERT INTO deepdives(user_id,package_id,topic_id,card_id,kind,title,q,a,summary,points,refs,material_id,created) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)'; $refs = json_encode($x['refs'], JSON_UNESCAPED_UNICODE);
-    if ($kind === 'card') { foreach ($x['cards'] as $c) { q($ins, [$uid, $pk['id'], $t['id'], $card['id'] ?? null, 'card', mb_substr($c[0], 0, 160), $c[0], $c[1], '', '[]', $refs, null, $now]); $ids[] = (int)db()->lastInsertId(); } }
+function deep_save(int $uid, array $pk, array $t, ?array $card, string $kind, array $x, int $depth = 1, ?int $parent = null): array {
+    $ids = []; $now = time(); $ins = 'INSERT INTO deepdives(user_id,package_id,topic_id,card_id,kind,title,q,a,summary,points,refs,material_id,created,depth,parent_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'; $refs = json_encode($x['refs'], JSON_UNESCAPED_UNICODE);
+    if ($kind === 'card') { foreach ($x['cards'] as $c) { q($ins, [$uid, $pk['id'], $t['id'], $card['id'] ?? null, 'card', mb_substr($c[0], 0, 160), $c[0], $c[1], '', '[]', $refs, null, $now, $depth, $parent]); $ids[] = (int)db()->lastInsertId(); } }
     else {
         $txt = $x['summary'] . "\n\nPONTOS-CHAVE\n" . implode("\n", array_map(fn($p) => '- ' . $p, $x['points'])) . "\n\nFONTES\n" . implode("\n", array_map(fn($p) => '- ' . $p, $x['refs']));
         q('INSERT INTO materials(title,author,kind,url,text,tags,pdf,user_id,created) VALUES(?,?,?,?,?,?,?,?,?)', ['🔎 ' . $t['title'] . ': ' . $x['title'], 'Aprofundamento', 'texto', '', mb_substr($txt, 0, 120000), json_encode(['aprofundamento', $pk['name']], JSON_UNESCAPED_UNICODE), '', $uid, $now]); $mid = (int)db()->lastInsertId();
-        q($ins, [$uid, $pk['id'], $t['id'], $card['id'] ?? null, 'tema', $x['title'], '', '', $x['summary'], json_encode($x['points'], JSON_UNESCAPED_UNICODE), $refs, $mid, $now]); $ids[] = (int)db()->lastInsertId();
+        q($ins, [$uid, $pk['id'], $t['id'], $card['id'] ?? null, 'tema', $x['title'], '', '', $x['summary'], json_encode($x['points'], JSON_UNESCAPED_UNICODE), $refs, $mid, $now, $depth, $parent]); $ids[] = (int)db()->lastInsertId();
     }
-    $out = []; foreach ($ids as $id) { $r = q('SELECT id,topic_id,card_id,kind,title,q,a,summary,points,refs FROM deepdives WHERE id=?', [$id])->fetch(); $r['points'] = jd($r['points']); $r['refs'] = jd($r['refs']); $out[] = $r; }
+    $out = []; foreach ($ids as $id) { $r = q('SELECT id,topic_id,card_id,kind,title,q,a,summary,points,refs,depth,parent_id FROM deepdives WHERE id=?', [$id])->fetch(); $r['points'] = jd($r['points']); $r['refs'] = jd($r['refs']); $out[] = $r; }
     return $out;
 }

@@ -62,7 +62,7 @@
   function summary() {
     const v = (n) => ($('[name=' + n + ']') || {}).value || '', ed = ($('[name=editions]:checked') || {}).value, EN = { ambas: 'As duas (cada pessoa escolhe)', portal: 'Só o portal', acessivel: 'Só o mobile acessível' };
     const on = A.filter((a) => a.enabled);
-    $('#summary').replaceChildren(...[['Plataforma', v('site') || 'Estudo Claro'], ['Administrador', v('name') + ' (' + v('email') + ')'], ['Versões', EN[ed]], ['IA', $('#ia_on').value === '1' && on.length ? on.length + ' agente(s): ' + on.map((a) => a.label || TYPES[a.type]).join(' → ') + ' → modo agente → esqueleto' : 'Só modo agente (sem IA automática)'], ['Pacote de exemplo', $('[name=seed]').checked ? 'Direito Administrativo' : 'nenhum']].flatMap(([k, x]) => [el('dt', {}, k), el('dd', {}, x)]));
+    $('#summary').replaceChildren(...[['Plataforma', v('site') || 'LearnPack'], ['Administrador', v('name') + ' (' + v('email') + ')'], ['Versões', EN[ed]], ['IA', $('#ia_on').value === '1' && on.length ? on.length + ' agente(s): ' + on.map((a) => a.label || TYPES[a.type]).join(' → ') + ' → modo agente → esqueleto' : 'Só modo agente (sem IA automática)'], ['Pacote de exemplo', $('[name=seed]').checked ? 'Direito Administrativo' : 'nenhum']].flatMap(([k, x]) => [el('dt', {}, k), el('dd', {}, x)]));
   }
   paint(); show(1);
 })();

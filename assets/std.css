@@ -71,3 +71,9 @@ html.std body.nonav .shell{grid-template-columns:1fr}
 html.std body .study{gap:.8rem}html.std canvas.g3d{border:1px solid var(--bd);border-radius:8px}
 
 html.std body.immersive .shell{grid-template-columns:1fr}
+
+/* desenho padrão: botão de criar conta sóbrio, sem animação */
+html.std .cta-create{animation:none;background:var(--ac);border-width:2px;font-size:1.05em;min-height:3rem}html.std .cta-create::after,html.std .cta-create .spark{animation:none;display:none}html.std .create-panel{animation:none}
+html.std .login-card{box-shadow:none;border-width:2px}
+
+html.std .fl-plus{border-width:2px;background:var(--ac);transition:none}html.std .fl-item.fresh>.fl-line .fl-card{animation:none}

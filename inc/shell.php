@@ -9,7 +9,7 @@ function render_page(string $edition): void {
     header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
     header('X-Content-Type-Options: nosniff'); header('Referrer-Policy: same-origin'); header('X-Frame-Options: DENY');
     if (is_https()) header('Strict-Transport-Security: max-age=31536000');
-    $name = htmlspecialchars((string)(cfg('name') ?: 'Estudo Claro'), ENT_QUOTES, 'UTF-8'); $cls = ['portal' => 'portal', 'acessivel' => 'acc'][$edition] ?? '';
+    $name = htmlspecialchars((string)(cfg('name') ?: 'LearnPack'), ENT_QUOTES, 'UTF-8'); $cls = ['portal' => 'portal', 'acessivel' => 'acc'][$edition] ?? '';
     ?><!doctype html>
 <html lang="pt-BR" data-theme="claro">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -27,6 +27,7 @@ function render_page(string $edition): void {
   <button class="alt" type="button" data-act="fs+" aria-label="Aumentar letra">A+</button>
   <button class="alt" type="button" data-act="theme" aria-label="Trocar contraste">Contraste</button>
   <button class="alt" type="button" data-act="read" aria-label="Ouvir esta página">Ouvir</button>
+  <button class="alt" type="button" data-act="pause" aria-label="Pausar a leitura" aria-pressed="false" disabled>⏸ Pausar</button>
   <button class="alt" type="button" data-act="stop" aria-label="Parar leitura">Parar</button>
   <button class="alt" type="button" data-act="auto" aria-pressed="false" aria-label="Ler cada item ao focar">Ler ao focar</button>
  </div>

@@ -76,13 +76,13 @@ function export_route(int $uid, int $pid): array {
     }
     $route = ['name' => $pk['name'], 'emoji' => $pk['emoji'], 'goal' => $pk['goal'], 'objective' => $pk['objective'], 'kind' => $pk['kind'], 'strategy' => jd($pk['strategy']), 'biblio' => jd($pk['biblio']), 'sources' => jd($pk['sources']), 'topics' => $topics];
     $ref = (int)($pl['paused_at'] ?: time());
-    return ['format' => 'estudo-claro-trilha', 'version' => 1, 'exported_at' => date('c'), 'route' => $route,
+    return ['format' => 'learnpack-trilha', 'version' => 1, 'exported_at' => date('c'), 'route' => $route,
         'plan' => ['deadline' => $pl['deadline'] ? gmdate('Y-m-d', (int)$pl['deadline']) : null, 'hpw' => (float)$pl['hpw'], 'elapsed_s' => max(0, $ref - (int)$pl['start_ts']), 'remaining_s' => $pl['deadline'] ? max(0, (int)$pl['deadline'] - $ref) : null, 'status' => $pl['status']],
         'progress' => $prog, 'integrity' => hash('sha256', json_encode($route, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))];
 }
 function import_route(int $uid, array $x): array {
     $warn = null;
-    if (($x['format'] ?? '') === 'estudo-claro-trilha') {
+    if (in_array(($x['format'] ?? ''), ['learnpack-trilha', 'estudo-claro-trilha'], true)) {  // aceita também o nome antigo do formato
         $r = $x['route'] ?? null; if (!is_array($r)) throw new RuntimeException('Arquivo de trilha sem o campo "route".');
         if (!empty($x['integrity']) && !hash_equals((string)$x['integrity'], hash('sha256', json_encode($r, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)))) $warn = 'O conteúdo parece ter sido editado depois da exportação. A trilha foi importada mesmo assim.';
     } else $r = $x;                                   // aceita também o formato simples de pacote

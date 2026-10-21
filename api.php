@@ -295,19 +295,29 @@ switch ($r) {
         $u = user(); $pid = (int)($_GET['id'] ?? 0) ?: curpkg($u); if (!visible_pkg((int)$u['id'], $pid)) out(['error' => 'Trilha não encontrada.'], 404);
         out(graph_data((int)$u['id'], $pid));
     case 'deep_generate': case 'deep_apply':
-        $u = user(); $uid = (int)$u['id']; $kind = ($in['kind'] ?? 'tema') === 'card' ? 'card' : 'tema'; $focus = str($in, 'focus', 300);
+        $u = user(); $uid = (int)$u['id']; $kind = (($in['kind'] ?? 'tema') === 'card' || !empty($in['expand'])) ? 'card' : 'tema'; $focus = str($in, 'focus', 300);
+        // expansão em profundidade: parent = id de um aprofundamento (nível seguinte); sem parent, nível 1 a partir do tópico ou do cartão
+        $par = null; $depth = 1; $parentId = null;
+        if (!empty($in['parent'])) { $par = q('SELECT * FROM deepdives WHERE id=? AND user_id=?', [(int)$in['parent'], $uid])->fetch(); if (!$par) out(['error' => 'Item não encontrado.'], 404); $in['topic_id'] = $par['topic_id']; $depth = (int)$par['depth'] + 1; $parentId = (int)$par['id']; }
         $t = q('SELECT * FROM topics WHERE id=?', [(int)($in['topic_id'] ?? 0)])->fetch(); if (!$t || !visible_pkg($uid, (int)$t['package_id'])) out(['error' => 'Tópico não encontrado.'], 404);
         $pk = q('SELECT id,name,goal,objective,biblio FROM packages WHERE id=?', [$t['package_id']])->fetch(); $card = !empty($in['card_id']) ? (q('SELECT id,q,a FROM cards WHERE id=? AND topic_id=?', [(int)$in['card_id'], $t['id']])->fetch() ?: null) : null;
+        if ($par) $card = ['id' => $par['card_id'] ? (int)$par['card_id'] : null, 'q' => $par['q'] !== '' ? $par['q'] : $par['title'], 'a' => $par['a'] !== '' ? $par['a'] : mb_substr((string)$par['summary'], 0, 400)];
+        $maxD = graph_cfg()['max_depth']; if ($depth > $maxD) out(['error' => 'Nível máximo de profundidade atingido (' . $maxD . ').'], 400);
+        if ($parentId) { $sib = q('SELECT q,title FROM deepdives WHERE user_id=? AND parent_id=?', [$uid, $parentId])->fetchAll(); }
+        elseif ($card && !empty($card['id'])) { $sib = q('SELECT q,title FROM deepdives WHERE user_id=? AND card_id=? AND parent_id IS NULL', [$uid, $card['id']])->fetchAll(); }
+        else { $sib = q('SELECT q,title FROM deepdives WHERE user_id=? AND topic_id=? AND card_id IS NULL AND parent_id IS NULL', [$uid, $t['id']])->fetchAll(); }
+        if (!empty($in['expand']) && count($sib) >= 9) out(['error' => 'Limite de 9 itens nesta ramificação.'], 400);
+        $ex = ['depth' => $depth, 'avoid' => array_map(fn($r) => $r['q'] !== '' ? $r['q'] : $r['title'], $sib)];
         set_time_limit(0); session_write_close();
-        if ($r === 'deep_apply') { try { $x = norm_deepdive(extract_json((string)($in['text'] ?? '')) ?? throw new InvalidArgumentException('Não encontrei um JSON válido na resposta colada.'), $kind, $t['title']); out(['ok' => 1, 'items' => deep_save($uid, $pk, $t, $card, $kind, $x)]); } catch (Throwable $e) { out(['error' => $e->getMessage()], 400); } }
+        if ($r === 'deep_apply') { try { $x = norm_deepdive(extract_json((string)($in['text'] ?? '')) ?? throw new InvalidArgumentException('Não encontrei um JSON válido na resposta colada.'), $kind, $t['title']); out(['ok' => 1, 'items' => deep_save($uid, $pk, $t, $card, $kind, $x, $depth, $parentId)]); } catch (Throwable $e) { out(['error' => $e->getMessage()], 400); } }
         try {
             if (!ia_info($u)['enabled']) throw new RuntimeException('A IA automática não está configurada.');
-            $res = ai_complete(['system' => 'Você é professor(a) e pesquisador(a). Responda em português do Brasil e somente com JSON válido.', 'user' => fn(bool $s) => deep_prompt($pk, $t, $card, $kind, $focus, $s), 'search' => true, 'max_tokens' => 4000], fn($x) => norm_deepdive(extract_json($x) ?? throw new InvalidArgumentException('Resposta sem JSON válido.'), $kind, $t['title']), 'redator');
-            out(['ok' => 1, 'items' => deep_save($uid, $pk, $t, $card, $kind, $res['result']), 'provider' => $res['provider']]);
-        } catch (Throwable $e) { out(['manual' => ['prompt' => deep_prompt($pk, $t, $card, $kind, $focus, false), 'error' => $e->getMessage()]]); }
+            $res = ai_complete(['system' => 'Você é professor(a) e pesquisador(a). Responda em português do Brasil e somente com JSON válido.', 'user' => fn(bool $s) => deep_prompt($pk, $t, $card, $kind, $focus, $s, $ex), 'search' => true, 'max_tokens' => 4000], fn($x) => norm_deepdive(extract_json($x) ?? throw new InvalidArgumentException('Resposta sem JSON válido.'), $kind, $t['title']), 'redator');
+            out(['ok' => 1, 'items' => deep_save($uid, $pk, $t, $card, $kind, $res['result'], $depth, $parentId), 'provider' => $res['provider']]);
+        } catch (Throwable $e) { out(['manual' => ['prompt' => deep_prompt($pk, $t, $card, $kind, $focus, false, $ex), 'error' => $e->getMessage()]]); }
     case 'deep_list':
         $u = user(); $uid = (int)$u['id']; $pid = (int)($_GET['id'] ?? 0) ?: curpkg($u); if (!visible_pkg($uid, $pid)) out(['error' => 'Trilha não encontrada.'], 404);
-        $rows = q('SELECT d.id,d.topic_id,d.card_id,d.kind,d.title,d.q,d.a,d.summary,d.points,d.refs,d.created,t.title topic,t.emoji FROM deepdives d JOIN topics t ON t.id=d.topic_id WHERE d.user_id=? AND d.package_id=? ORDER BY d.id DESC', [$uid, $pid])->fetchAll();
+        $rows = q('SELECT d.id,d.topic_id,d.card_id,d.kind,d.title,d.q,d.a,d.summary,d.points,d.refs,d.created,d.depth,d.parent_id,t.title topic,t.emoji FROM deepdives d JOIN topics t ON t.id=d.topic_id WHERE d.user_id=? AND d.package_id=? ORDER BY d.id DESC', [$uid, $pid])->fetchAll();
         foreach ($rows as &$x) { $x['points'] = jd($x['points']); $x['refs'] = jd($x['refs']); }
         unset($x); out(['pkg' => q('SELECT id,name,emoji,goal FROM packages WHERE id=?', [$pid])->fetch(), 'items' => $rows]);
     case 'deep_del':
