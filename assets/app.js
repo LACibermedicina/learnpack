@@ -158,47 +158,42 @@ async function boot() {
 }
 async function enter(fn) { await fn(); notify(''); await boot(); location.hash = '#/'; render(); }
 
+const NAVM = ['full', 'icons', 'hidden'], NAVL = { full: 'Menu com texto', icons: 'Menu só ícones', hidden: 'Menu oculto' };
+const navGet = () => { let m = null; try { m = localStorage.getItem('ec_nav'); } catch (e) {} return NAVM.includes(m) ? m : 'full'; };
+function navApply() { const m = navGet(), c = document.body.classList; c.toggle('nav-icons', m === 'icons'); c.toggle('nav-hidden', m === 'hidden'); const b = $('#navtoggle'); if (b) { b.textContent = '☰ ' + NAVL[m]; b.setAttribute('aria-label', NAVL[m] + '. Alternar entre texto, ícones e oculto'); b.setAttribute('aria-expanded', String(m !== 'hidden')); } }
+function navCycle() { const n = NAVM[(NAVM.indexOf(navGet()) + 1) % 3]; try { localStorage.setItem('ec_nav', n); } catch (e) {} navApply(); notify(NAVL[n]); }
 function buildNav() {
-  const n = $('#nav'); n.replaceChildren(); hud(); applyTools(); document.body.classList.add('nonav');
+  const n = $('#nav'); n.replaceChildren(); hud(); applyTools(); document.body.classList.add('nonav'); document.body.classList.toggle('auth', !S.user);
   if (!S.user || !ED()) return;
   document.body.classList.remove('nonav');
-  const it = (e, t, h) => el('a', { class: 'btn alt', href: h }, el('span', { class: 'ni', 'aria-hidden': 'true' }, e), el('span', { class: 'nl' }, t));
+  const it = (e, t, h) => el('a', { class: 'btn alt', href: h, title: t }, el('span', { class: 'ni', 'aria-hidden': 'true' }, e), el('span', { class: 'nl' }, t));
   if (ED() === 'acessivel') { n.append(it('🗺️', 'Trilha', '#/'), it('🃏', 'Revisar', '#/revisar/due'), it('📚', 'Resumos', '#/resumos'), it('🧭', 'Trilhas', '#/trilhas'), it('☰', 'Mais', '#/mais')); return; }
-  n.append(it('🏠', 'Início', '#/'), it('🧭', 'Explorar', '#/explorar'), it('🃏', 'Revisar', '#/revisar/due'), it('🗺️', 'Minhas trilhas', '#/trilhas'), it('👥', 'Grupos', '#/grupos'), it('🗂️', 'Materiais', '#/materiais'), it('🎙️', 'Aulas', '#/aulas'), it('🕸️', 'Mapa', '#/grafo/0'), it('📚', 'Resumos', '#/resumos'), it('🏆', 'Conquistas', '#/conquistas'), it('⚙️', 'Ajustes', '#/ajustes'));
+  if (ED() === 'portal') { if (!$('#navtoggle')) $('header .in').prepend(el('button', { id: 'navtoggle', class: 'alt', type: 'button', 'aria-controls': 'nav', onclick: navCycle })); navApply(); }
+  n.append(it('🏠', 'Início', '#/'), it('🧭', 'Explorar', '#/explorar'), it('🃏', 'Revisar', '#/revisar/due'), it('🗺️', 'Minhas trilhas', '#/trilhas'), it('👥', 'Grupos', '#/grupos'), it('🗂️', 'Materiais', '#/materiais'), it('🎙️', 'Aulas', '#/aulas'), it('🕸️', 'Mapa', '#/grafo/0'), it('⚔️', 'Aventura', '#/aventura'), it('📚', 'Resumos', '#/resumos'), it('🏆', 'Conquistas', '#/conquistas'), it('⚙️', 'Ajustes', '#/ajustes'));
   if (S.user.role === 'admin') n.append(it('🛠️', 'Administração', '#/admin/users'));
   n.append(it('🔀', 'Trocar de versão', '#/versao'), el('button', { type: 'button', class: 'alt', onclick: logout }, el('span', { class: 'ni', 'aria-hidden': 'true' }, '🚪'), el('span', { class: 'nl' }, 'Sair (' + S.user.name + ')')));
 }
 
 /* ---------- telas ---------- */
 function vHome(mode = '') {
-  // tela de acesso: login e senha no topo; “Criar conta” abre as opções (com token ou solicitar token)
-  const panelMode = ['criar', 'token', 'pedir'].includes(mode) ? mode : '';
-  const back = () => el('p', {}, link('← Voltar às opções', '#/criar'));
-  const panel = (id, title, ...c) => el('section', { class: 'box create-panel', id, 'aria-labelledby': id + '-t' }, el('h2', { id: id + '-t', tabindex: '-1' }, title), c);
-  let extra = null;
-  if (panelMode === 'criar') {
-    extra = panel('criar', 'Como você quer criar a sua conta?',
-      el('div', { class: 'choices' },
-        el('a', { class: 'choice', href: '#/token' }, el('span', { class: 'ic', 'aria-hidden': 'true' }, '🔑'), el('strong', {}, 'Tenho um token'), el('span', { class: 'd' }, 'Recebi um código de convite e quero criar a conta agora.')),
-        el('a', { class: 'choice', href: '#/pedir' }, el('span', { class: 'ic', 'aria-hidden': 'true' }, '✉️'), el('strong', {}, 'Solicitar token de acesso'), el('span', { class: 'd' }, 'Ainda não tenho token: peço ao administrador.'))));
-  } else if (panelMode === 'token') {
-    extra = panel('token', 'Criar conta com token', el('p', {}, 'Digite o token recebido para liberar o seu cadastro.'),
-      form([field('Token de acesso', 'token', { req: true, ac: 'off', ph: 'XXXX-XXXX', cls: 'tok' }), field('Seu nome', 'name', { req: true, ac: 'name' }), field('E-mail', 'email', { type: 'email', req: true, ac: 'email' }), field('Crie uma senha (mínimo 8 caracteres)', 'pass', { type: 'password', req: true, min: 8, ac: 'new-password' }), el('p', {}, submit('Cadastrar com token'))],
-        (d) => enter(() => api('register', { body: d }))), back());
-  } else if (panelMode === 'pedir') {
-    extra = panel('pedir', 'Solicitar token de acesso', el('p', {}, 'Conte quem você é. Quando o administrador aprovar, ele envia um token para o seu e-mail.'),
-      form([field('Seu nome', 'name', { req: true, ac: 'name' }), field('E-mail', 'email', { type: 'email', req: true, ac: 'email' }), field('Mensagem (opcional)', 'msg', { tag: 'textarea', rows: 3 }), el('p', {}, submit('Enviar pedido'))],
-        async (d, f) => { await api('request', { body: d }); f.reset(); notify('Pedido enviado. Quando for aprovado, o administrador enviará um token para o seu e-mail.'); }), back());
-  }
-  return el('div', { class: 'auth' },
-    el('div', { class: 'auth-head' }, el('img', { class: 'logo-big', src: LOGO, alt: '' }), el('h1', {}, S.name)),
-    el('section', { class: 'box login-card', id: 'entrar', 'aria-labelledby': 'entrar-t' }, el('h2', { id: 'entrar-t' }, 'Entrar'),
-      form([field('E-mail', 'email', { type: 'email', req: true, ac: 'username' }), field('Senha', 'pass', { type: 'password', req: true, ac: 'current-password' }), el('p', {}, submit('Entrar'))],
-        (d) => enter(() => api('login', { body: d })))),
-    el('div', { class: 'cta-wrap' }, el('p', { class: 'cta-hint' }, 'Ainda não tem conta?'),
-      el('a', { class: 'cta-create', href: '#/criar', 'aria-expanded': String(!!panelMode), 'aria-controls': panelMode || 'criar' }, el('span', { class: 'spark', 'aria-hidden': 'true' }, '✨'), el('span', {}, 'Criar conta'))),
-    extra,
-    el('p', { class: 'auth-about' }, 'Trilhas de estudo com revisão ativa e IA, feitas para todos: letras grandes, contraste alto, leitura em voz alta e revisões curtas.'));
+  // tela de acesso: somente login (animado); “Sou novo usuário” leva às opções (tenho token / solicitar token)
+  const back = (to, t) => el('p', {}, link(t, to));
+  const panel = (id, t, ...c) => el('section', { class: 'box create-panel', id, 'aria-labelledby': id + '-t' }, el('h2', { id: id + '-t', tabindex: '-1' }, t), c);
+  let body;
+  if (mode === 'criar') body = panel('criar', 'Sou novo usuário', el('p', {}, 'Escolha como quer continuar:'), el('div', { class: 'choices' },
+    el('a', { class: 'choice', href: '#/token' }, el('span', { class: 'ic', 'aria-hidden': 'true' }, '🔑'), el('strong', {}, 'Tenho um token'), el('span', { class: 'd' }, 'Recebi um código de convite e quero criar a conta agora.')),
+    el('a', { class: 'choice', href: '#/pedir' }, el('span', { class: 'ic', 'aria-hidden': 'true' }, '✉️'), el('strong', {}, 'Solicitar token de acesso'), el('span', { class: 'd' }, 'Ainda não tenho token: peço ao administrador.'))), back('#/entrar', '← Voltar ao login'));
+  else if (mode === 'token') body = panel('token', 'Criar conta com token', el('p', {}, 'Digite o token recebido para liberar o seu cadastro.'),
+    form([field('Token de acesso', 'token', { req: true, ac: 'off', ph: 'XXXX-XXXX', cls: 'tok' }), field('Seu nome', 'name', { req: true, ac: 'name' }), field('E-mail', 'email', { type: 'email', req: true, ac: 'email' }), field('Crie uma senha (mínimo 8 caracteres)', 'pass', { type: 'password', req: true, min: 8, ac: 'new-password' }), el('p', {}, submit('Cadastrar com token'))], (d) => enter(() => api('register', { body: d }))), back('#/criar', '← Voltar às opções'));
+  else if (mode === 'pedir') body = panel('pedir', 'Solicitar token de acesso', el('p', {}, 'Conte quem você é. Quando o administrador aprovar, ele envia um token para o seu e-mail.'),
+    form([field('Seu nome', 'name', { req: true, ac: 'name' }), field('E-mail', 'email', { type: 'email', req: true, ac: 'email' }), field('Mensagem (opcional)', 'msg', { tag: 'textarea', rows: 3 }), el('p', {}, submit('Enviar pedido'))],
+      async (d, f) => { await api('request', { body: d }); f.reset(); notify('Pedido enviado. Quando for aprovado, o administrador enviará um token para o seu e-mail.'); }), back('#/criar', '← Voltar às opções'));
+  else body = [el('section', { class: 'box login-card', id: 'entrar', 'aria-labelledby': 'entrar-t' }, el('h2', { id: 'entrar-t' }, 'Entrar'),
+      form([field('E-mail', 'email', { type: 'email', req: true, ac: 'username' }), field('Senha', 'pass', { type: 'password', req: true, ac: 'current-password' }), el('p', {}, submit('Entrar'))], (d) => enter(() => api('login', { body: d })))),
+    el('div', { class: 'cta-wrap' }, el('a', { class: 'cta-create', href: '#/criar', 'aria-expanded': 'false', 'aria-controls': 'criar' }, el('span', { class: 'spark', 'aria-hidden': 'true' }, '✨'), el('span', {}, 'Sou novo usuário')))];
+  const fl = el('div', { class: 'floaty', 'aria-hidden': 'true' }, ['📖', '🃏', '⭐', '🗺️', '🎓', '✨', '🧩', '📜', '🏆', '💡'].map((e, k) => { const x = el('span', {}, e); x.style.setProperty('--x', (k * 10 + 3) + '%'); x.style.setProperty('--d', (7 + (k % 4) * 2) + 's'); x.style.setProperty('--w', (k * 0.9) + 's'); return x; }));
+  return el('div', { class: 'auth' }, fl, el('div', { class: 'auth-head' }, el('span', { class: 'hero-emoji', 'aria-hidden': 'true' }, '🧙‍♀️'), el('h1', {}, S.name)), body,
+    el('p', { class: 'auth-about' }, 'Trilhas de estudo com revisão ativa, IA e aventura: letras grandes, contraste alto e leitura em voz alta.'));
 }
 
 async function vDash() {
@@ -1174,6 +1169,7 @@ async function render(keep) {
     else if (r === 'materiais') { node = await vMaterials(); title = 'Materiais'; }
     else if (r === 'mais') { node = vMore(); title = 'Mais'; }
     else if (r === 'aulas') { node = await vLessons(); title = 'Aulas'; }
+    else if (r === 'aventura') { node = await vAdventure(); title = 'Aventura'; }
     else if (r === 'grafo') { node = await vGraph(+a, Q); title = 'Mapa de conhecimento'; }
     else if (r === 'aprofundamento') { node = await vDeepLib(+a); title = 'Aprofundamento'; }
     else if (r === 'aula') { node = await vLesson(+a); title = 'Aula'; }
@@ -1202,3 +1198,61 @@ addEventListener('hashchange', () => render());
   await render();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
+
+/* ---------- Aventura RPG ---------- */
+const hash = (t) => [...String(t)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const palOf = (name, pow) => { const h = hash(name) % 360; return { hair: `hsl(${h},70%,45%)`, cloth: `hsl(${(h + 120) % 360},60%,50%)`, cape: `hsl(${(h + 200) % 360},65%,35%)`, aura: `hsl(${(h + 60) % 360},95%,60%)`, pow: pow || 0 }; };
+function drawHero(c, x, y, s, p, back, t) {   // herói estilo anime (chibi), de frente ou de costas
+  c.save(); c.translate(x, y + Math.sin(t / 250) * 2 * s); c.scale(s, s);
+  if (p.pow) { c.globalAlpha = 0.28; c.fillStyle = p.aura; c.beginPath(); c.arc(0, -40, 34 + Math.min(30, p.pow / 30) + Math.sin(t / 300) * 2, 0, 7); c.fill(); c.globalAlpha = 1; }
+  c.fillStyle = p.cape; c.beginPath(); c.moveTo(-18, -34); c.lineTo(18, -34); c.lineTo(26, 0); c.lineTo(-26, 0); c.fill();
+  if (!back) { c.fillStyle = p.cloth; c.fillRect(-12, -34, 24, 26); }
+  c.fillStyle = back ? p.hair : '#ffd9bf'; c.beginPath(); c.arc(0, -52, 16, 0, 7); c.fill();
+  c.fillStyle = p.hair; c.beginPath(); c.arc(0, -56, 17.5, Math.PI, 0); c.fill(); c.beginPath(); for (const k of [-15, -7, 2, 10]) { c.moveTo(k, -64); c.lineTo(k + 5, -82); c.lineTo(k + 11, -64); } c.fill();
+  if (back) { c.beginPath(); c.arc(0, -50, 17, 0, Math.PI); c.fill(); }
+  else for (const k of [-7, 7]) { c.fillStyle = '#fff'; c.beginPath(); c.ellipse(k, -50, 5, 6.5, 0, 0, 7); c.fill(); c.fillStyle = p.aura; c.beginPath(); c.ellipse(k, -49, 3.2, 5, 0, 0, 7); c.fill(); c.fillStyle = '#111'; c.beginPath(); c.arc(k, -49, 1.8, 0, 7); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(k + 1.3, -51.5, 1.3, 0, 7); c.fill(); }
+  c.restore();
+}
+function playRun(host, pal, onEnd) {   // corrida em terceira pessoa: câmera atrás do herói, colete cartas e desvie dos slimes
+  const W = 360, H = 480, cv = el('canvas', { width: W, height: H, class: 'advcv', tabindex: 0, 'aria-label': 'Jogo: use as setas para mover o herói' }), c = cv.getContext('2d'); let px = 0, vx = 0, hp = 3, sc = 0, got = 0, tl = 40, last = 0, spawn = 0, O = [], pet = [];
+  const key = {}; const kd = (e) => { key[e.key.toLowerCase()] = e.type === 'keydown'; if (e.key.startsWith('Arrow')) e.preventDefault(); }; document.addEventListener('keydown', kd); document.addEventListener('keyup', kd);
+  const pad = el('div', { class: 'advpad' }, ['◀', '▶'].map((l, k) => { const b = el('button', { type: 'button', class: 'alt', 'aria-label': k ? 'Direita' : 'Esquerda' }, l); const on = (v) => (e) => { e.preventDefault(); key[k ? 'arrowright' : 'arrowleft'] = v; }; b.addEventListener('pointerdown', on(true)); b.addEventListener('pointerup', on(false)); b.addEventListener('pointerleave', on(false)); return b; }));
+  host.replaceChildren(cv, pad); cv.focus(); const proj = (x, z) => ({ X: W / 2 + x * (40 + 150 * (1 - z)), Y: 150 + 270 * (1 - z) ** 1.6, S: 0.25 + 0.95 * (1 - z) });
+  (function loop(t) {
+    if (!cv.isConnected) { document.removeEventListener('keydown', kd); document.removeEventListener('keyup', kd); return; }
+    const dt = Math.min(0.05, (t - last) / 1000 || 0); last = t; tl -= dt; spawn -= dt; const sp = 0.55 + (40 - tl) * 0.012;
+    vx = ((key.arrowright || key.d ? 1 : 0) - (key.arrowleft || key.a ? 1 : 0)) * 2.4; px = Math.max(-1.25, Math.min(1.25, px + vx * dt));
+    if (spawn <= 0) { spawn = 0.55 + Math.random() * 0.5; O.push({ x: (Math.random() * 2.4 - 1.2), z: 1, bad: Math.random() < 0.38 }); }
+    const g = c.createLinearGradient(0, 0, 0, 160); g.addColorStop(0, '#6ec6ff'); g.addColorStop(1, '#ffd6f0'); c.fillStyle = g; c.fillRect(0, 0, W, 170);
+    c.fillStyle = '#6dd27a'; c.fillRect(0, 150, W, H); c.fillStyle = '#8b8fb8'; c.beginPath(); c.moveTo(W / 2 - 22, 150); c.lineTo(W / 2 + 22, 150); c.lineTo(W / 2 + 190, H); c.lineTo(W / 2 - 190, H); c.fill();
+    c.strokeStyle = '#fff'; c.lineWidth = 3; c.setLineDash([12, 16]); c.lineDashOffset = -t / 20; c.beginPath(); c.moveTo(W / 2, 150); c.lineTo(W / 2, H); c.stroke(); c.setLineDash([]);
+    for (let k = 0; k < 6; k++) for (const sd of [-1, 1]) { const z = ((k / 6 + t / 3000 * sp) % 1), q = proj(sd * 1.8, 1 - z); c.font = `${Math.round(40 * q.S)}px serif`; c.textAlign = 'center'; c.fillText('🌸', q.X, q.Y); }
+    O.forEach((o) => { o.z -= dt * sp; }); O.sort((a, b) => b.z - a.z);
+    for (const o of O) { const q = proj(o.x, o.z); c.font = `${Math.round(54 * q.S)}px serif`; c.textAlign = 'center'; c.fillText(o.bad ? '👾' : '🃏', q.X, q.Y);
+      if (o.z < 0.12 && !o.done && Math.abs(o.x - px) < 0.42) { o.done = true; if (o.bad) { hp--; navigator.vibrate && navigator.vibrate(60); } else { got++; sc += 10; pet.push({ x: q.X, y: q.Y, a: 1 }); } } }
+    O = O.filter((o) => o.z > 0.02 && !o.done); pet.forEach((q) => { q.y -= 1.5; q.a -= 0.03; c.globalAlpha = Math.max(0, q.a); c.fillText('✨', q.X || q.x, q.y); c.globalAlpha = 1; }); pet = pet.filter((q) => q.a > 0);
+    drawHero(c, W / 2 + px * 150, H - 30, 1.5, pal, true, t);
+    c.fillStyle = '#1e1b4b'; c.font = '700 16px sans-serif'; c.textAlign = 'left'; c.fillText('❤'.repeat(Math.max(0, hp)) + '  🃏 ' + got + '  ⏱ ' + Math.max(0, Math.ceil(tl)) + 's', 10, 24);
+    if (hp <= 0 || tl <= 0) { document.removeEventListener('keydown', kd); document.removeEventListener('keyup', kd); onEnd({ got, score: sc, win: hp > 0 }); return; }
+    requestAnimationFrame(loop);
+  })(0);
+}
+async function vAdventure() {
+  const [st, tp, rt] = await Promise.all([api('stats'), api('topics'), api('routes')]);
+  const T = Array.isArray(tp) ? tp : (tp.topics || []), RL = Array.isArray(rt) ? rt : (rt.routes || []), xp = S.user.xp || st.xp || 0, streak = st.streak || 0;
+  let bagX = 0; try { bagX = +localStorage.getItem('ec_bag') || 0; } catch (e) {}
+  const stars = T.reduce((a, t) => a + (t.stars || 0), 0), dom = T.reduce((a, t) => a + (t.k || 0), 0), best = Math.max(0, ...T.map((t) => t.stars || 0));
+  const M = [['Primeiros passos', 'Ganhe 50 XP', xp, 50], ['Estudioso', 'Ganhe 300 XP', xp, 300], ['Chama acesa', 'Estude 3 dias seguidos', streak, 3], ['Estrela do saber', 'Conquiste 1 estrela', best, 1], ['Colecionador', 'Domine 10 cartões', dom, 10], ['Mestre do assunto', '3 estrelas em um assunto', best, 3]];
+  const done = M.filter((m) => m[2] >= m[3]).length, pow = Math.floor(xp / 4) + 25 * stars + 8 * dom + 40 * done + 2 * bagX, lv = Math.floor(Math.sqrt(xp / 30)) + 1;
+  const cur = RL.find((x) => x.id === S.user.pkg) || RL[0] || { name: 'Aventureiro', emoji: '🧙' }, pal = palOf(cur.name, pow);
+  const hero = el('canvas', { width: 180, height: 190, class: 'herocv', role: 'img', 'aria-label': 'Seu herói: poder ' + pow }), hc = hero.getContext('2d'); const an = (t) => { if (!hero.isConnected) return; hc.clearRect(0, 0, 180, 190); drawHero(hc, 90, 170, 1.7, pal, false, t); requestAnimationFrame(an); }; requestAnimationFrame(an);
+  const bar = (v, m) => el('div', { class: 'bar', role: 'progressbar', 'aria-valuenow': Math.min(v, m), 'aria-valuemax': m }, el('i', { style: '' })); const mk = (v, m) => { const b = bar(v, m); b.firstChild.style.width = Math.min(100, v / m * 100) + '%'; return b; };
+  const bag = T.filter((t) => t.k).map((t) => el('li', { class: 'it r' + Math.min(3, t.stars || 0) }, el('span', { 'aria-hidden': 'true' }, t.emoji || '🃏'), el('b', {}, t.title), el('small', {}, '×' + t.k + ' · ' + ['comum', 'rara', 'épica', 'lendária'][Math.min(3, t.stars || 0)])));
+  if (bagX) bag.push(el('li', { class: 'it r1' }, el('span', { 'aria-hidden': 'true' }, '🌸'), el('b', {}, 'Cartas de aventura'), el('small', {}, '×' + bagX)));
+  const arena = el('div', { class: 'advarena' }); const heroes = el('div', { class: 'heroes' }, RL.map((x) => { const b = el('button', { type: 'button', class: 'alt hbtn' + (x.id === cur.id ? ' cur' : ''), onclick: async () => { await api('pkg_set', { body: { id: x.id } }); S.user.pkg = x.id; render(); } }, el('span', { 'aria-hidden': 'true' }, x.emoji || '🧙'), ' ', x.name); return b; }));
+  const start = () => { arena.hidden = false; arena.scrollIntoView({ block: 'center' }); playRun(arena, pal, (r) => { try { localStorage.setItem('ec_bag', String(bagX + r.got)); } catch (e) {} arena.replaceChildren(el('h2', {}, r.win ? '🏆 Missão cumprida!' : '💫 Quase lá!'), el('p', {}, r.got + ' cartas coletadas (+' + (2 * r.got) + ' de poder). Elas já estão na sua mochila.'), btn('Jogar de novo', start, ''), btn('Atualizar herói', () => render(), 'alt')); }); };
+  return el('div', {}, el('h1', {}, '⚔️ Aventura'), el('p', {}, 'Cada trilha tem um herói. Estude, cumpra missões e colete cartas: seu poder cresce a cada passo.'), heroes,
+    el('section', { class: 'box herobox' }, hero, el('div', {}, el('h2', {}, cur.name), el('p', {}, 'Nível ' + lv + ' · ', el('b', {}, '⚡ Poder ' + pow)), mk(xp - 30 * (lv - 1) ** 2, 30 * (lv ** 2 - (lv - 1) ** 2)), el('p', {}, '⭐ ' + stars + ' estrelas · 🃏 ' + dom + ' cartões dominados · 🔥 ' + streak + ' dias'), btn('▶ Iniciar aventura (terceira pessoa)', start, ''))), arena,
+    el('div', { class: 'cols' }, el('section', { class: 'box' }, el('h2', {}, '📜 Missões (' + done + '/' + M.length + ')'), el('ul', { class: 'missions' }, M.map((m) => el('li', { class: m[2] >= m[3] ? 'ok' : '' }, el('b', {}, (m[2] >= m[3] ? '✅ ' : '⬜ ') + m[0]), el('small', {}, ' ' + m[1] + ' · ' + Math.min(m[2], m[3]) + '/' + m[3]), mk(m[2], m[3]))))),
+      el('section', { class: 'box' }, el('h2', {}, '🎒 Mochila de itens'), bag.length ? el('ul', { class: 'bag' }, bag) : el('p', {}, 'Vazia por enquanto: domine cartões ou colete cartas na aventura.'))));
+}
